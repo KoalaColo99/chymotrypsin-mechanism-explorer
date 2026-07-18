@@ -6,7 +6,8 @@
   const $ = id => document.getElementById(id);
   const state = {
     stage: 0, structure: "4cha", viewer: null, timer: null, playing: false,
-    cache: new Map(), atoms: [], loadToken: 0
+    cache: new Map(), atoms: [], loadToken: 0, detail: "chemical",
+    track: "", comparison: false, isolate: false, arrowBuilder: false, arrowPick: []
   };
 
   const atomKey = atom => `${atom.auth_asym_id}:${atom.auth_comp_id}${atom.auth_seq_id}:${atom.auth_atom_id}`;
@@ -143,48 +144,99 @@
     const mode = stage.bonds;
     const bound = !["resting", "release"].includes(mode);
     const tetra = mode === "tetrahedral" || mode === "tetrahedral2";
-    const covalent = ["attack", "tetrahedral", "collapse", "acyl", "water", "tetrahedral2", "deacyl"].includes(mode);
-    const water = ["water", "tetrahedral2", "deacyl"].includes(mode);
-    const activated = ["activation", "attack", "water", "tetrahedral2"].includes(mode);
+    const covalent = ["attack", "tetrahedral", "collapse", "acyl", "water", "waterattack", "tetrahedral2", "deacyl"].includes(mode);
+    const water = ["water", "waterattack", "tetrahedral2", "deacyl"].includes(mode);
+    const serMinus = ["activation", "attack"].includes(mode);
+    const hisPlus = ["activation", "attack", "tetrahedral", "water", "waterattack", "tetrahedral2", "deacyl"].includes(mode);
     const product = ["collapse", "deacyl", "release"].includes(mode);
-    const protonX = water ? 445 : activated ? 350 : 305;
+    const peptideAttached = bound && !["acyl","water","waterattack","tetrahedral2","deacyl"].includes(mode);
+    const carbonylDouble = !tetra && !["attack","waterattack"].includes(mode);
+    const detail = state.detail;
+    const full = detail === "electron";
+    const chemical = detail !== "conceptual";
+    const tracked = key => state.track === key ? " tracked" : "";
+    const atom = (key, x, y, label, cls="carbon", info="") => `<g class="atom-node ${cls}${tracked(key)}" data-atom="${key}" data-info="${escapeXml(info)}"><circle cx="${x}" cy="${y}" r="${detail === "conceptual" ? 17 : 13}"/><text x="${x}" y="${y+5}" text-anchor="middle">${label}</text></g>`;
+    const lone = (x,y,n=2) => full ? Array.from({length:n},(_,i)=>`<text class="lone-pair" x="${x+i*12}" y="${y}">••</text>`).join("") : "";
+    const arrows = [];
+    if (full && mode === "activation") arrows.push(`<path class="electron-arrow" d="M390 374Q425 315 461 343"/><path class="electron-arrow" d="M476 348Q500 328 508 350"/>`);
+    if (full && mode === "attack") arrows.push(`<path class="electron-arrow" d="M520 365Q574 320 607 259"/><path class="electron-arrow" d="M611 238Q578 195 608 173"/>`);
+    if (full && mode === "collapse") arrows.push(`<path class="electron-arrow" d="M608 170Q585 205 610 230"/><path class="electron-arrow" d="M626 252Q661 278 682 258"/><path class="electron-arrow" d="M399 351Q460 306 676 260"/>`);
+    if (full && ["water","waterattack"].includes(mode)) arrows.push(`<path class="electron-arrow" d="M390 374Q435 430 493 414"/>${mode==="waterattack"?`<path class="electron-arrow" d="M520 410Q574 350 610 264"/><path class="electron-arrow" d="M612 238Q584 199 610 174"/>`:""}`);
     $("mechanismSvg").innerHTML = `
       <title id="mechanismTitle">${escapeXml(stage.title)}</title>
       <desc id="mechanismDesc">${escapeXml(stage.chemistry)}</desc>
       <defs>
         <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#10263a"/></marker>
       </defs>
-      <path class="pocket" d="M40 60C90 18 210 18 270 55c80-45 220-35 286 26 91-18 166 63 127 141l-42 80c-48 93-151 149-265 142C242 478 117 421 72 321 23 215 15 112 40 60Z"/>
-      <path class="cavity" d="M492 65c97 42 124 95 92 159-19 38-44 56-78 70-33-48-79-70-130-68 36-42 65-93 82-151 9-28 19-33 34-10Z"/>
-      <circle class="residue" cx="205" cy="360" r="42" fill="#c84d59"/><text class="res-name" x="175" y="366">Asp102</text>
-      <circle class="residue" cx="330" cy="325" r="42" fill="#2777a8"/><text class="res-name" x="303" y="331">His57</text>
-      <circle class="residue" cx="455" cy="345" r="42" fill="#ef8b32"/><text class="res-name" x="426" y="351">Ser195</text>
-      <path class="hbond" d="M247 350L286 334"/><path class="hbond" d="M372 331L413 340"/>
-      <text class="atom" x="241" y="327">O⁻</text><text class="atom" x="282" y="305">Nδ1</text><text class="atom" x="361" y="302">Nε2</text><text class="atom" x="424" y="317">Oγ</text>
-      <circle class="proton modeled-h" cx="${protonX}" cy="${water ? 275 : 309}" r="10"/><text class="caption modeled-h" x="${protonX - 5}" y="${water ? 279 : 313}">H</text>
-      ${bound ? `<path class="bond substrate" d="M638 95L582 145L536 193L493 240"/><path class="bond substrate" d="M493 240L454 274"/>
-        <text class="atom" x="506" y="224">C</text><text class="atom" x="471" y="192">O${tetra ? "⁻" : ""}</text><path class="bond" d="M500 224L479 199"/>
-        <text class="caption" x="575" y="77">aromatic side chain in S1 pocket</text>` : ""}
-      ${covalent ? `<path class="bond covalent" d="M454 304L491 242"/>` : ""}
-      ${water ? `<circle cx="535" cy="320" r="22" fill="#dbeef3" stroke="#2777a8" stroke-width="2"/><text class="atom" x="522" y="327">H₂O</text>` : ""}
-      ${activated && !water ? `<path class="arrow" d="M430 292Q420 248 485 234"/>` : ""}
-      ${water && mode !== "deacyl" ? `<path class="arrow" d="M522 298Q493 267 503 245"/>` : ""}
-      ${product ? `<path class="bond" d="M600 370L661 405" stroke="#7654a8"/><text class="caption" x="578" y="355">${mode === "collapse" ? "amine product" : "carboxylate product"}</text>` : ""}
-      <path class="hbond" d="M467 180L445 151"/><path class="hbond" d="M488 184L512 150"/>
-      <text class="caption" x="387" y="132">oxyanion-hole NH donors</text>
+      <g class="${state.isolate && mode==="acyl" ? "dimmed" : ""}">
+      <text class="residue-title" x="38" y="36">Asp102</text><text class="role-label" x="38" y="55">orients His57; stabilizes charge redistribution</text>
+      <path class="bond" d="M48 108L88 108L122 82"/><path class="bond double" d="M122 79L157 57"/><path class="bond" d="M126 87L161 112"/>
+      <text class="fragment" x="38" y="113">Protein–CH₂</text>${atom("aspOD1",170,52,"O","oxygen","Asp102 OD1|Oxygen|0|1|2|Carboxylate oxygen")}
+      ${atom("aspOD2",174,118,"O⁻","oxygen","Asp102 OD2|Oxygen|−1|1|3|Hydrogen-bond acceptor")}${chemical?`<text class="atom-label" x="182" y="37">OD1</text><text class="atom-label" x="184" y="139">OD2</text>`:""}
+      ${lone(184,104,2)}
+      <text class="residue-title" x="270" y="36">His57</text><text class="role-label" x="270" y="55">general base ⇄ general acid</text>
+      <path class="bond" d="M284 113L315 83L356 94L366 134L330 154L294 137Z"/><path class="bond double" d="M318 87L350 98"/><path class="bond double" d="M360 130L332 148"/>
+      ${atom("hisND1",289,112,"N","nitrogen","His57 Nδ1|Nitrogen|0|2|1|Triad hydrogen-bond donor")}
+      ${atom("hisN",364,134,hisPlus?"N⁺":"N","nitrogen","His57 Nε2|Nitrogen|"+(hisPlus?"+1":"0")+"|"+(hisPlus?"3":"2")+"|"+(hisPlus?"0":"1")+"|"+(hisPlus?"General acid":"General base"))}
+      ${hisPlus?`<path class="bond" d="M376 142L397 158"/>${atom("proton",405,164,"H*","hydrogen","Transferred proton H*|Hydrogen|+1 modeled|1|0|Proton relay")}`:lone(372,119,1)}
+      <path class="hbond" d="M191 116L276 113"/>
+      <text class="residue-title" x="430" y="36">Ser195 side chain</text><text class="role-label" x="430" y="55">Oγ — catalytic nucleophile</text>
+      <text class="fragment" x="438" y="115">Protein–CH₂</text><path class="bond" d="M505 108L537 108"/>
+      ${atom("serO",550,108,serMinus?"O⁻":"O","ser-oxygen","Ser195 Oγ|Oxygen|"+(serMinus?"−1":"0")+"|"+(covalent?"2":serMinus?"1":"2")+"|"+(serMinus?"3":"2")+"|"+(covalent?"Acyl bond":"Catalytic nucleophile"))}
+      ${!serMinus && !covalent?`<path class="bond" d="M564 108L589 108"/>${atom("proton",600,108,"H*","hydrogen","Transferred proton H*|Hydrogen|0|1|0|Ser195 proton")}`:""}
+      ${lone(561,91,serMinus?3:2)}<path class="hbond" d="M378 132L537 109"/>
+      </g>
+      ${bound ? `<g class="${state.isolate&&mode==="acyl"?"dimmed":""}"><text class="fragment-label" x="462" y="222">R_C</text><path class="bond substrate" d="M486 217L586 247"/>
+        ${atom("carbonylC",610,252,"C","carbon","Carbonyl carbon|Carbon|0|"+(tetra?"4":"3")+"|0|"+(tetra?"tetrahedral; sp³":"electrophile; trigonal planar; sp²"))}
+        ${atom("carbonylO",610,170,tetra?"O⁻":"O","oxygen","Carbonyl oxygen|Oxygen|"+(tetra?"−1":"0")+"|"+(tetra?"1":"2")+"|"+(tetra?"3":"2")+"|"+(tetra?"Oxyanion":"Carbonyl oxygen"))}
+        <path class="bond ${carbonylDouble?"double":""}" d="M610 235L610 187"/>
+        ${peptideAttached?`<path class="bond scissile ${mode==="collapse"?"breaking":""}" d="M627 252L674 252"/>${atom("peptideN",691,252,mode==="collapse"?"NH₂":"NH","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|"+(mode==="collapse"?"Amine-side product":"Leaving group"))}<text class="fragment-label" x="713" y="257">–R_N</text><text class="bond-label" x="642" y="281">scissile peptide bond</text>`:""}
+        ${covalent?`<path class="bond covalent ${mode==="attack"?"forming":""}" d="M564 117L599 240"/><text class="bond-label" x="510" y="190">Ser Oγ–C</text>`:`<path class="attack-geometry" d="M563 117L600 239"/>`}
+        </g>` : ""}
+      ${tetra?`<path class="hbond" d="M610 154L535 300"/><path class="hbond" d="M610 154L662 300"/><text class="donor" x="470" y="323">Gly193 N–H</text><text class="donor" x="640" y="323">Ser195 backbone N–H</text><text class="role-label" x="495" y="345">Oxyanion hole stabilizes developing negative charge</text>`:""}
+      ${water?`<g>${atom("waterO",505,414,mode==="water"?"O⁻":"OH","water-oxygen","Water oxygen|Oxygen|"+(mode==="water"?"−1":"0")+"|"+(mode==="water"?"1":"2")+"|"+(mode==="water"?"3":"2")+"|Water-derived nucleophile")}<path class="bond water-bond" d="M505 397L505 375"/><text class="fragment-label" x="480" y="365">${mode==="water"?"activated H–O:":"water-derived OH"}</text>${["waterattack","tetrahedral2"].includes(mode)?`<path class="bond forming" d="M516 402L600 266"/>`:""}</g>`:""}
+      ${product?`<g>${mode==="collapse"?`${atom("peptideN",618,414,"NH₂","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|Amine-side product")}<text class="fragment-label" x="643" y="420">–R_N · amine-side product</text>`:`<text class="fragment-label" x="536" y="430">R_C–C(=O)O(H) · carboxyl-side product</text>`}</g>`:""}
+      ${arrows.join("")}
+      ${state.comparison?`<g class="comparison-inset"><text x="34" y="405">Planar carbonyl: sp², C=O</text><path d="M55 455L105 425M55 455L105 485M55 455L15 455"/><text x="34" y="515">Tetrahedral: sp³, four σ bonds</text></g>`:""}
       <text class="caption" x="55" y="515">${escapeXml(stage.chemistry)}</text>`;
+    $("mechanismSvg").classList.toggle("isolate", state.isolate);
+    document.querySelectorAll(".atom-node").forEach(node => node.addEventListener("click", () => inspectAtom(node)));
     updateToggles();
+  }
+
+  function inspectAtom(node) {
+    const [name, element, charge, bonds, pairs, role] = (node.dataset.info || "").split("|");
+    if (state.arrowBuilder) {
+      state.arrowPick.push({ key: node.dataset.atom, name, pairs: Number(pairs) || 0 });
+      if (state.arrowPick.length === 1) {
+        $("atomInspector").innerHTML = `<strong>Arrow source: ${escapeXml(name)}</strong><p>Now select the atom receiving electrons.</p>`;
+        return;
+      }
+      const [source, destination] = state.arrowPick.splice(0);
+      const validSource = source.pairs > 0 && source.key !== "proton";
+      $("atomInspector").innerHTML = `<strong>${validSource ? "Proposed arrow recorded" : "Try again"}</strong><p>${validSource ? `${escapeXml(source.name)} → ${escapeXml(destination.name)}` : "Curved arrows begin at an electron pair or bond, not at a proton."}</p>`;
+      return;
+    }
+    state.track = node.dataset.atom;
+    $("trackAtomSelect").value = state.track;
+    $("atomInspector").innerHTML = `<strong>${escapeXml(name)}</strong><dl><dt>Element</dt><dd>${escapeXml(element)}</dd><dt>Formal charge</dt><dd>${escapeXml(charge)}</dd><dt>Current bonds</dt><dd>${escapeXml(bonds)}</dd><dt>Lone pairs</dt><dd>${escapeXml(pairs)}</dd><dt>Current role</dt><dd>${escapeXml(role)}</dd></dl>`;
+    drawMechanism(stages[state.stage]);
   }
 
   function drawEnergy() {
     const width = 1100, left = 54, right = 34, bottom = 184, top = 22;
-    const x = i => left + i * ((width - left - right) / (stages.length - 1));
-    const y = value => bottom - value * (bottom - top);
-    const path = stages.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(s.energy).toFixed(1)}`).join(" ");
+    const x = i => left + i * ((width - left - right) / (stages.length - 1)), y = value => bottom - value * (bottom - top);
+    const values = $("energyDetailToggle")?.checked ? [.12,.2,.78,.42,.72,.52,.28,.42,.76,.5,.65,.08] : [.12,.18,.62,.45,.52,.42,.28,.42,.64,.48,.52,.08];
+    const path = values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+    const labels = ["ES","TS1","Tetrahedral I","TS2","Acyl–enzyme","TS3","Tetrahedral II","TS4","E + products"];
     $("energySvg").innerHTML = `<line class="energy-baseline" x1="${left}" y1="${bottom}" x2="${width-right}" y2="${bottom}"/>
       <text class="energy-label" x="8" y="30">Higher</text><text class="energy-label" x="8" y="${bottom}">Lower</text>
       <path class="energy-path" d="${path}"/>
-      ${stages.map((s, i) => `<g data-energy-stage="${i}"><circle class="energy-point${i === state.stage ? " active" : ""}" cx="${x(i)}" cy="${y(s.energy)}" r="8"/><text class="energy-label" x="${x(i)}" y="214" text-anchor="middle">${i + 1}</text></g>`).join("")}
+      <path class="current-guide" d="M${x(state.stage)} 20V${bottom}"/>
+      ${stages.map((s, i) => `<g data-energy-stage="${i}"><circle class="energy-point${i === state.stage ? " active" : ""}" cx="${x(i)}" cy="${y(values[i])}" r="8"/><text class="energy-label" x="${x(i)}" y="214" text-anchor="middle">${i + 1}</text></g>`).join("")}
+      <path class="phase-bracket" d="M${left} 198H${x(6)}"/><text class="energy-label" x="${(left+x(6))/2}" y="197" text-anchor="middle">Acylation</text>
+      <path class="phase-bracket" d="M${x(6)} 198H${width-right}"/><text class="energy-label" x="${(x(6)+width-right)/2}" y="197" text-anchor="middle">Deacylation</text>
+      ${$("energyDetailToggle")?.checked?labels.map((l,i)=>`<text class="barrier-label" x="${left+i*(width-left-right)/(labels.length-1)}" y="${i%2?42:65}" text-anchor="middle">${l}</text>`).join(""):""}
       <text class="energy-label" x="${width / 2}" y="232" text-anchor="middle">Reaction progress</text>`;
     document.querySelectorAll("[data-energy-stage]").forEach(node => node.addEventListener("click", () => setStage(Number(node.dataset.energyStage))));
   }
@@ -208,6 +260,7 @@
     $("evidenceBtn").textContent = stage.evidence;
     $("evidenceBtn").dataset.class = stage.class;
     $("evidenceText").textContent = stage.chemistry;
+    $("changeList").innerHTML = `<dt>Proton movement</dt><dd>${escapeXml(stage.proton)}</dd><dt>Bond forming</dt><dd>${escapeXml(stage.forming)}</dd><dt>Bond breaking</dt><dd>${escapeXml(stage.breaking)}</dd><dt>Catalytic role</dt><dd>${escapeXml(stage.role)}</dd>`;
     const config = structures[stage.pdb];
     $("stageFacts").innerHTML = `<dt>Structure</dt><dd>${config.id} · ${config.resolution}</dd><dt>Method</dt><dd>${config.method}</dd><dt>Chains</dt><dd>${config.chains.hisAsp}/${config.chains.serPocket}</dd><dt>Evidence</dt><dd>${stage.evidence}</dd>`;
     drawMechanism(stage);
@@ -274,6 +327,22 @@
     $("structureSelect").addEventListener("change", event => loadStructure(event.target.value));
     $("representationSelect").addEventListener("change", focusActiveSite);
     ["labelsToggle","hbondsToggle","arrowsToggle","hydrogenToggle"].forEach(id => $(id).addEventListener("change", updateToggles));
+    document.querySelectorAll("[data-detail]").forEach(button => button.addEventListener("click", () => {
+      state.detail = button.dataset.detail;
+      document.querySelectorAll("[data-detail]").forEach(peer => peer.setAttribute("aria-pressed", String(peer === button)));
+      drawMechanism(stages[state.stage]);
+    }));
+    $("trackAtomSelect").addEventListener("change", event => { state.track = event.target.value; drawMechanism(stages[state.stage]); });
+    $("comparisonBtn").addEventListener("click", () => { state.comparison = !state.comparison; $("comparisonBtn").setAttribute("aria-pressed", String(state.comparison)); drawMechanism(stages[state.stage]); });
+    $("isolateBtn").addEventListener("click", () => { state.isolate = !state.isolate; $("isolateBtn").setAttribute("aria-pressed", String(state.isolate)); drawMechanism(stages[state.stage]); });
+    $("arrowBuilderBtn").addEventListener("click", () => {
+      state.arrowBuilder = !state.arrowBuilder;
+      $("arrowBuilderBtn").setAttribute("aria-pressed", String(state.arrowBuilder));
+      $("arrowBuilderBtn").textContent = state.arrowBuilder ? "Select electron source, then destination" : "Build the arrows";
+      state.detail = state.arrowBuilder ? "chemical" : "electron";
+      drawMechanism(stages[state.stage]);
+    });
+    $("energyDetailToggle").addEventListener("change", drawEnergy);
     $("speedSelect").addEventListener("change", () => { if (state.playing) { stop(); play(); } });
     $("evidenceBtn").addEventListener("click", showEvidence);
     $("copyNotesBtn").addEventListener("click", copyNotes);

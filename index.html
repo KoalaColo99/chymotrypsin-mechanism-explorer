@@ -57,7 +57,24 @@
       <article class="chemistry-panel" aria-label="Two-dimensional chemistry">
         <div class="panel-bar">
           <div><strong>2D chemistry</strong><span id="chemistryLabel">Catalytic triad</span></div>
-          <a class="button small" href="atomic.html">Atomic detail</a>
+          <div class="detail-switch" role="group" aria-label="Chemical detail">
+            <button type="button" data-detail="conceptual">Conceptual</button>
+            <button type="button" data-detail="chemical" aria-pressed="true">Chemical</button>
+            <button type="button" data-detail="electron">Full electron flow</button>
+          </div>
+        </div>
+        <div class="chem-tools">
+          <label>Track atom
+            <select id="trackAtomSelect">
+              <option value="">None</option><option value="serO">Ser195 Oγ</option>
+              <option value="hisN">His57 Nε2</option><option value="proton">Transferred proton H*</option>
+              <option value="carbonylC">Substrate carbonyl carbon</option><option value="carbonylO">Substrate carbonyl oxygen</option>
+              <option value="peptideN">Peptide nitrogen</option><option value="waterO">Water oxygen</option>
+            </select>
+          </label>
+          <button id="comparisonBtn" class="button small" type="button">Compare geometry</button>
+          <button id="isolateBtn" class="button small" type="button">Isolate acyl–enzyme bond</button>
+          <button id="arrowBuilderBtn" class="button small" type="button">Build the arrows</button>
         </div>
         <svg id="mechanismSvg" viewBox="0 0 760 560" role="img" aria-labelledby="mechanismTitle mechanismDesc"></svg>
         <div class="chem-legend">
@@ -110,13 +127,16 @@
       <article class="coordinate-panel">
         <div class="panel-bar">
           <div><strong>Reaction coordinate</strong><span>Conceptual energy profile; not calculated from the PDB files</span></div>
+          <label class="profile-toggle"><input id="energyDetailToggle" type="checkbox" checked> Detailed four-barrier profile</label>
         </div>
         <svg id="energySvg" viewBox="0 0 1100 235" role="img" aria-label="Clickable conceptual reaction coordinate"></svg>
       </article>
       <aside class="notes-panel">
-        <h3>What the structure supports</h3>
-        <p id="evidenceText"></p>
-        <dl id="stageFacts"></dl>
+        <h3>What changed?</h3>
+        <dl id="changeList" class="change-list"></dl>
+        <h3>Atom inspector</h3>
+        <div id="atomInspector" class="atom-inspector">Select an atom in the 2D mechanism.</div>
+        <details><summary>Structure evidence</summary><p id="evidenceText"></p><dl id="stageFacts"></dl></details>
         <button id="copyNotesBtn" class="button small" type="button">Copy instructor note</button>
       </aside>
     </section>
