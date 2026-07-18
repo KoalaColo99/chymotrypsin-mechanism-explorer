@@ -3,125 +3,145 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="An interactive undergraduate-level explorer of the chymotrypsin catalytic mechanism.">
-  <title>Chymotrypsin Catalytic Mechanism Explorer</title>
-  <link rel="stylesheet" href="styles.css?v=4">
+  <meta name="description" content="Explore chymotrypsin structure and catalytic chemistry with experimental PDB coordinates.">
+  <title>Chymotrypsin Mechanism Explorer: Structure and Chemistry</title>
+  <link rel="stylesheet" href="assets/vendor/molstar/molstar.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="site-header">
+  <header class="topbar">
     <div>
-      <p class="eyebrow">Biochemistry interactive</p>
-      <h1>Chymotrypsin Catalytic Mechanism Explorer</h1>
+      <p class="eyebrow">Experimental structure + mechanism</p>
+      <h1>Chymotrypsin Mechanism Explorer</h1>
     </div>
-    <div class="header-actions">
-      <a class="button chemistry-link" href="atomic.html">Catalytic Triad Chemistry</a>
-      <button id="tutorialStart" class="button primary">Start Guided Tutorial</button>
+    <div class="top-actions">
+      <span id="loadStatus" class="status">Loading 4CHA…</span>
+      <button id="fullscreenBtn" class="button ghost" type="button">Full screen</button>
+      <button id="resetBtn" class="button" type="button">Reset</button>
     </div>
   </header>
 
   <main>
-    <section class="principle" aria-label="Central catalytic idea">
-      <strong>One catalytic cycle, five strategies:</strong>
-      <span>acid–base catalysis · covalent catalysis · electrostatic stabilization · substrate orientation · transition-state stabilization</span>
+    <section class="stage-header" aria-live="polite">
+      <div>
+        <p id="stageKicker" class="eyebrow">Stage 1 of 12 · Recognition</p>
+        <h2 id="stageTitle">Free enzyme</h2>
+        <p id="stageSummary">The catalytic residues are preorganized in the resting enzyme.</p>
+      </div>
+      <button id="evidenceBtn" class="evidence-badge" type="button">Experimental structure</button>
     </section>
 
-    <nav class="timeline-wrap" aria-label="Mechanism stages">
+    <nav class="timeline-shell" aria-label="Catalytic mechanism stages">
       <div id="timeline" class="timeline"></div>
     </nav>
 
     <section class="workspace">
-      <div class="mechanism-column">
-        <div class="panel-heading">
-          <div><span id="stageNumber" class="stage-kicker">Stage 0 of 9</span><h2 id="stageTitle">Free enzyme + substrate</h2></div>
-          <span id="phaseBadge" class="phase-badge">Recognition</span>
-        </div>
-        <div class="svg-shell">
-          <svg id="mechanismSvg" viewBox="0 0 940 510" role="img" aria-labelledby="svgTitle svgDesc"></svg>
-          <div class="legend" aria-label="Diagram legend">
-            <span><i class="swatch ser"></i>Ser195</span><span><i class="swatch his"></i>His57</span>
-            <span><i class="swatch asp"></i>Asp102</span><span><i class="line hbond"></i>H bond</span>
-            <span><i class="line covalent"></i>Transient covalent bond</span>
+      <article class="viewer-panel" aria-label="Three-dimensional structure">
+        <div class="panel-bar">
+          <div>
+            <strong>3D structure</strong>
+            <span id="structureLabel">4CHA · free enzyme</span>
           </div>
+          <button id="focusBtn" class="button small" type="button">Focus active site</button>
         </div>
-
-        <div class="transport" aria-label="Playback controls">
-          <button id="prevBtn" class="button" aria-label="Previous step">← Previous</button>
-          <button id="playBtn" class="button primary" aria-label="Play mechanism">▶ Play</button>
-          <button id="nextBtn" class="button" aria-label="Next step">Next →</button>
-          <button id="resetBtn" class="button quiet" aria-label="Reset interactive">↺ Reset</button>
-          <label>Speed <select id="speedSelect" aria-label="Animation speed"><option value="4200">Slow</option><option value="2600" selected>Medium</option><option value="1400">Fast</option></select></label>
+        <div id="molstarViewer" class="molstar-host">
+          <div class="viewer-fallback">Preparing experimental coordinates…</div>
         </div>
+        <div class="distance-strip">
+          <span>Asp102 OD2—His57 ND1 <strong id="aspHisDistance">—</strong></span>
+          <span>His57 NE2—Ser195 OG <strong id="hisSerDistance">—</strong></span>
+          <span id="validationState">Validating residue mapping…</span>
+        </div>
+      </article>
 
-        <fieldset class="display-controls">
-          <legend>Display</legend>
-          <label><input id="arrowsToggle" type="checkbox" checked> Electron arrows</label>
-          <label><input id="chargesToggle" type="checkbox" checked> Formal charges</label>
-          <label><input id="hbondsToggle" type="checkbox" checked> H bonds</label>
-          <label><input id="triadToggle" type="checkbox"> Catalytic triad</label>
-          <label><input id="oxyToggle" type="checkbox"> Oxyanion hole</label>
-          <label><input id="covalentToggle" type="checkbox"> Covalent intermediate</label>
-        </fieldset>
+      <article class="chemistry-panel" aria-label="Two-dimensional chemistry">
+        <div class="panel-bar">
+          <div><strong>2D chemistry</strong><span id="chemistryLabel">Catalytic triad</span></div>
+          <a class="button small" href="atomic.html">Atomic detail</a>
+        </div>
+        <svg id="mechanismSvg" viewBox="0 0 760 560" role="img" aria-labelledby="mechanismTitle mechanismDesc"></svg>
+        <div class="chem-legend">
+          <span><i class="dot ser"></i>Ser195</span>
+          <span><i class="dot his"></i>His57</span>
+          <span><i class="dot asp"></i>Asp102</span>
+          <span><i class="dash"></i>hydrogen bond</span>
+          <span><i class="solid"></i>covalent bond</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="control-deck">
+      <div class="transport">
+        <button id="prevBtn" class="button" type="button">← Previous</button>
+        <button id="playBtn" class="button primary" type="button">Play</button>
+        <button id="nextBtn" class="button" type="button">Next →</button>
       </div>
-
-      <aside class="explanation" aria-live="polite">
-        <p id="stepMessage" class="step-message"></p>
-        <dl id="roleList"></dl>
-        <div><h3>Catalytic strategy</h3><div id="strategyTags" class="tags"></div></div>
-        <div class="look-for"><strong>Look for this</strong><span id="lookFor"></span></div>
-      </aside>
+      <label>Structure
+        <select id="structureSelect">
+          <option value="4cha">4CHA · free enzyme</option>
+          <option value="8gch">8GCH · peptide-associated</option>
+          <option value="1gct">1GCT · acyl-enzyme candidate</option>
+          <option value="1gg6">1GG6 · tetrahedral analogue</option>
+        </select>
+      </label>
+      <label>Protein
+        <select id="representationSelect">
+          <option value="cartoon">Cartoon + active site</option>
+          <option value="active">Active site only</option>
+          <option value="all">All atoms</option>
+        </select>
+      </label>
+      <label>Speed
+        <select id="speedSelect">
+          <option value="5200">Slow</option>
+          <option value="3400" selected>Medium</option>
+          <option value="1900">Fast</option>
+        </select>
+      </label>
+      <div class="toggles">
+        <label><input id="labelsToggle" type="checkbox" checked> Labels</label>
+        <label><input id="hbondsToggle" type="checkbox" checked> H bonds</label>
+        <label><input id="arrowsToggle" type="checkbox" checked> Electron arrows</label>
+        <label><input id="hydrogenToggle" type="checkbox"> Modeled H atoms</label>
+      </div>
     </section>
 
     <section class="lower-grid">
-      <details id="strategyPanel" class="expandable">
-        <summary>Catalytic Strategies Used by Chymotrypsin</summary>
-        <p class="hint">Select a strategy to mark its active stages in the timeline.</p>
-        <div id="strategyCards" class="strategy-grid"></div>
-      </details>
-
-      <details class="expandable">
-        <summary>Structure overview</summary>
-        <div class="overview-layout">
-          <svg viewBox="0 0 520 220" role="img" aria-label="Schematic active-site map of chymotrypsin">
-            <path class="protein-shape" d="M35 119C51 31 146 22 208 54c45-50 154-30 170 27 77-7 121 66 74 112H76c-29-11-46-39-41-74Z"/>
-            <path class="pocket-shape" d="M334 51q52 20 20 106q-28-27-64-10q20-34 44-96Z"/>
-            <circle class="site ser-fill" cx="238" cy="139" r="13"/><circle class="site his-fill" cx="190" cy="119" r="13"/><circle class="site asp-fill" cx="143" cy="135" r="13"/>
-            <path class="bound-line" d="M370 91L322 116L272 129L238 139"/>
-            <text x="113" y="172">Catalytic triad</text><text x="345" y="42">Specificity pocket</text>
-            <text x="243" y="98">Oxyanion hole</text><text x="360" y="116">Bound substrate</text>
-          </svg>
-          <p>The active site brings remote sequence positions into one functional pocket. This map is schematic, not a scale protein structure.</p>
+      <article class="coordinate-panel">
+        <div class="panel-bar">
+          <div><strong>Reaction coordinate</strong><span>Conceptual energy profile; not calculated from the PDB files</span></div>
         </div>
-      </details>
+        <svg id="energySvg" viewBox="0 0 1100 235" role="img" aria-label="Clickable conceptual reaction coordinate"></svg>
+      </article>
+      <aside class="notes-panel">
+        <h3>What the structure supports</h3>
+        <p id="evidenceText"></p>
+        <dl id="stageFacts"></dl>
+        <button id="copyNotesBtn" class="button small" type="button">Copy instructor note</button>
+      </aside>
     </section>
 
-    <section class="energy-section">
-      <div class="tab-row" role="tablist" aria-label="Optional views">
-        <button id="energyTab" class="tab" role="tab" aria-selected="false" aria-controls="energyPanel">Mechanism + Energy</button>
+    <details class="accuracy">
+      <summary>Evidence and modeling notes</summary>
+      <div>
+        <p>Coordinates are loaded locally from RCSB mmCIF records. Proton transfers, bond making, bond breaking, and most intermediates are explanatory overlays—not molecular-dynamics trajectories.</p>
+        <p>Hydrogens are not resolved in these X-ray coordinate sets. “Modeled H atoms” shows schematic proton positions only.</p>
+        <ul id="sourceList"></ul>
       </div>
-      <div id="energyPanel" hidden>
-        <div class="energy-head"><p>Chymotrypsin lowers activation barriers but does not change the overall ΔG or reaction equilibrium.</p><label><input id="uncatalyzedToggle" type="checkbox"> Compare simplified uncatalyzed pathway</label></div>
-        <svg id="energySvg" viewBox="0 0 1000 330" role="img" aria-label="Simplified reaction-coordinate profile with two tetrahedral transition regions"></svg>
-        <p class="energy-note">The tetrahedral states represent high-energy, transition-state-like regions—not stable, isolatable products.</p>
-      </div>
-    </section>
-
-    <details class="accuracy expandable">
-      <summary>Mechanism Accuracy Notes <span>Instructor only</span></summary>
-      <ul>
-        <li>His57 activates Ser195 but does not attack the substrate carbonyl.</li><li>Asp102 organizes and stabilizes His57 rather than directly attacking substrate.</li>
-        <li>The first product leaves during acylation.</li><li>The acyl–enzyme contains a real covalent Ser195–O–C bond.</li>
-        <li>Water is activated by His57 during deacylation.</li><li>The oxyanion hole stabilizes both tetrahedral intermediates.</li>
-        <li>The enzyme is regenerated at the end of the cycle.</li>
-      </ul>
     </details>
   </main>
 
-  <dialog id="tutorialDialog" aria-labelledby="tutorialTitle">
-    <form method="dialog"><button class="dialog-close" aria-label="Close tutorial">×</button></form>
-    <p class="eyebrow">Guided tutorial</p><h2 id="tutorialTitle"></h2><p id="tutorialPrompt"></p>
-    <div id="tutorialOptions" class="tutorial-options"></div><p id="tutorialFeedback" class="feedback" aria-live="polite"></p>
-    <div class="dialog-actions"><span id="tutorialProgress"></span><button id="tutorialNext" class="button primary" type="button" disabled>Continue</button></div>
+  <dialog id="evidenceDialog">
+    <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form>
+    <p class="eyebrow">Evidence classification</p>
+    <h2 id="dialogTitle"></h2>
+    <p id="dialogBody"></p>
+    <p id="dialogCitation"></p>
   </dialog>
-  <script src="script.js?v=2"></script>
+
+  <script src="assets/vendor/molstar/molstar.js"></script>
+  <script src="structure-config.js"></script>
+  <script src="mechanism-data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
