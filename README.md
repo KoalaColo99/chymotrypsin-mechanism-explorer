@@ -12,15 +12,15 @@ with a twelve-stage chemical mechanism.
 - explicit separation of experimental structures, analogues, and mechanistic inference
 - keyboard navigation, playback, reset, fullscreen, and instructor notes
 
-## Run locally
+## Open and publish
 
-The browser must load the site over HTTP because it fetches local mmCIF files.
+The complete 2D mechanism works when `index.html` is opened directly. Browsers
+may block local-file access to the bundled mmCIF coordinates; in that case the
+left panel automatically displays an active-site schematic with a clear notice.
+The coordinate-based Mol* view becomes available automatically on GitHub Pages.
 
-```bash
-python3 -m http.server 8000
-```
-
-Then open `http://localhost:8000`.
+All runtime assets use repository-relative paths. No package installation,
+terminal command, remote PDB request, or build step is required.
 
 ## Structural sources
 

@@ -3,11 +3,26 @@
 
   const stages = window.MECHANISM_STAGES;
   const structures = window.STRUCTURES;
+  const tutorialQuestions = [
+    ["Which atom attacks the substrate carbonyl carbon?","Ser195 Oγ",["Ser195 Oγ","His57 Nε2","Asp102 OD2"],"Ser195 Oγ is the catalytic nucleophile."],
+    ["Which nitrogen accepts the proton from Ser195?","His57 Nε2",["His57 Nδ1","His57 Nε2","Peptide nitrogen"],"Nε2 faces Ser195 and acts as the general base."],
+    ["What stabilizes the oxyanion?","Gly193 and Ser195 backbone N–H groups",["Asp102 directly","Gly193 and Ser195 backbone N–H groups","Water alone"],"The oxyanion hole supplies two backbone N–H hydrogen bonds."],
+    ["When is the enzyme covalently attached?","Acyl–enzyme intermediate",["Substrate binding","Acyl–enzyme intermediate","Product release"],"The Ser195 Oγ–acyl carbon ester is the covalent intermediate."],
+    ["What happens to the carbonyl π electrons during attack?","They move onto oxygen",["They move onto oxygen","They move to His57","They leave with R_C"],"Addition converts C=O to C–O⁻."],
+    ["Which bond breaks during first collapse?","Scissile peptide C–N",["Ser195 C–O","Scissile peptide C–N","Asp–His hydrogen bond"],"The amine-side fragment departs when the peptide C–N bond breaks."],
+    ["What activates water?","His57 acting as a general base",["Free hydroxide diffusion","Asp102 attacks water","His57 acting as a general base"],"Bound water is activated by His57."],
+    ["What distinguishes tetrahedral intermediate II?","It contains water-derived oxygen",["It contains peptide nitrogen","It contains water-derived oxygen","It lacks Ser195"],"The peptide nitrogen departed during acylation."],
+    ["Which strategy uses a transient enzyme–substrate bond?","Covalent catalysis",["Electrostatic stabilization","Covalent catalysis","Proximity only"],"Ser195 forms a transient covalent acyl–enzyme linkage."],
+    ["How is Ser195 regenerated?","His57 returns H while the acyl bond breaks",["Asp102 protonates it directly","His57 returns H while the acyl bond breaks","The product donates carbon"],"Second collapse restores Ser195–OH."],
+    ["Does the enzyme change the reaction equilibrium?","No",["Yes","No","Only during acylation"],"Catalysis lowers activation barriers, not the overall equilibrium."],
+    ["Where did the elements of water go?","H to amine side; OH to carbonyl side",["Both to the enzyme","H to amine side; OH to carbonyl side","Both to R_N"],"Hydrolysis adds H and OH across the former peptide bond."]
+  ];
   const $ = id => document.getElementById(id);
   const state = {
     stage: 0, structure: "4cha", viewer: null, timer: null, playing: false,
     cache: new Map(), atoms: [], loadToken: 0, detail: "chemical",
-    track: "", comparison: false, isolate: false, arrowBuilder: false, arrowPick: []
+    track: "", comparison: false, isolate: false, arrowBuilder: false, arrowPick: [],
+    tutorial: 0
   };
 
   const atomKey = atom => `${atom.auth_asym_id}:${atom.auth_comp_id}${atom.auth_seq_id}:${atom.auth_atom_id}`;
@@ -135,7 +150,7 @@
       if (focus) window.setTimeout(focusActiveSite, 250);
     } catch (error) {
       $("loadStatus").textContent = `Could not load ${config.id}`;
-      $("molstarViewer").innerHTML = `<div class="viewer-fallback">Structure unavailable: ${escapeXml(error.message)}. Serve this folder over HTTP rather than opening index.html directly.</div>`;
+      $("molstarViewer").innerHTML = `<div class="viewer-fallback active"><svg viewBox="0 0 620 400" aria-label="Active-site schematic fallback"><path d="M45 205C70 75 220 43 309 105c92-68 237-23 261 92-25 121-168 174-281 111C184 361 68 319 45 205Z" fill="#dcecf2" stroke="#6f9eb5" stroke-width="4"/><path d="M410 82q100 48 38 170q-49-35-110-7q42-69 72-163Z" fill="#fff" stroke="#6f9eb5" stroke-width="3"/><circle cx="211" cy="261" r="27" fill="#194e79"/><circle cx="305" cy="235" r="27" fill="#194e79"/><circle cx="393" cy="264" r="27" fill="#ef8b32"/><text x="178" y="307">Asp102</text><text x="280" y="196">His57</text><text x="380" y="310">Ser195</text><path d="M480 118L434 171L393 230" fill="none" stroke="#23936c" stroke-width="10"/></svg><p>The interactive 3D structure will become available automatically after this project is published through GitHub Pages. You can continue using the complete 2D chemical mechanism below.</p></div>`;
       console.error(error);
     }
   }
@@ -200,6 +215,7 @@
       ${state.comparison?`<g class="comparison-inset"><text x="34" y="405">Planar carbonyl: sp², C=O</text><path d="M55 455L105 425M55 455L105 485M55 455L15 455"/><text x="34" y="515">Tetrahedral: sp³, four σ bonds</text></g>`:""}
       <text class="caption" x="55" y="515">${escapeXml(stage.chemistry)}</text>`;
     $("mechanismSvg").classList.toggle("isolate", state.isolate);
+    $("mechanismSvg").dataset.strategies = [...document.querySelectorAll("[data-strategy]:checked")].map(node => node.dataset.strategy).join(" ");
     document.querySelectorAll(".atom-node").forEach(node => node.addEventListener("click", () => inspectAtom(node)));
     updateToggles();
   }
@@ -266,15 +282,33 @@
     drawMechanism(stage);
     renderTimeline();
     drawEnergy();
+    validateChemistry(stage);
     if (!options.keepStructure && stage.pdb !== state.structure) loadStructure(stage.pdb);
   }
 
   function updateToggles() {
     const svg = $("mechanismSvg");
+    svg.classList.toggle("hide-atoms", !$("atomsToggle").checked);
     svg.classList.toggle("hide-labels", !$("labelsToggle").checked);
+    svg.classList.toggle("hide-atom-labels", !$("atomLabelsToggle").checked);
+    svg.classList.toggle("hide-lone-pairs", !$("lonePairsToggle").checked);
+    svg.classList.toggle("hide-charges", !$("chargesToggle").checked);
     svg.classList.toggle("hide-hbonds", !$("hbondsToggle").checked);
     svg.classList.toggle("hide-arrows", !$("arrowsToggle").checked);
     svg.classList.toggle("hide-hydrogens", !$("hydrogenToggle").checked);
+  }
+
+  function validateChemistry(stage) {
+    const tetra = ["tetrahedral", "tetrahedral2"].includes(stage.bonds);
+    const checks = {
+      restingSerOH: stage.bonds !== "resting" || !$("mechanismSvg").textContent.includes("O⁻"),
+      tetrahedralHasOxyanion: !tetra || $("mechanismSvg").textContent.includes("O⁻"),
+      tetrahedralNoDoubleCarbonyl: !tetra || !$("mechanismSvg").querySelector(".bond.double[d='M610 235L610 187']"),
+      acylBond: stage.bonds !== "acyl" || !!$("mechanismSvg").querySelector(".bond.covalent"),
+      regeneratedSerOH: stage.bonds !== "release" || $("mechanismSvg").textContent.includes("H*")
+    };
+    console.info("[chemical validation]", stage.title, checks);
+    return Object.values(checks).every(Boolean);
   }
 
   function stop() {
@@ -311,14 +345,33 @@
     window.setTimeout(() => { $("copyNotesBtn").textContent = "Copy instructor note"; }, 1600);
   }
 
+  function showTutorial() {
+    const [question, answer, options] = tutorialQuestions[state.tutorial];
+    $("tutorialQuestion").textContent = question;
+    $("tutorialProgress").textContent = `${state.tutorial + 1} of ${tutorialQuestions.length}`;
+    $("tutorialFeedback").textContent = "";
+    $("tutorialNextBtn").disabled = true;
+    $("tutorialOptions").innerHTML = options.map(option => `<button type="button" class="tutorial-option">${escapeXml(option)}</button>`).join("");
+    document.querySelectorAll(".tutorial-option").forEach(button => button.addEventListener("click", () => {
+      const correct = button.textContent === answer;
+      button.classList.add(correct ? "correct" : "incorrect");
+      button.setAttribute("aria-pressed", "true");
+      $("tutorialFeedback").textContent = correct ? tutorialQuestions[state.tutorial][3] : "Not yet. Use the atom labels and electron-flow direction, then try another choice.";
+      if (correct) $("tutorialNextBtn").disabled = false;
+    }));
+  }
+
   function bind() {
     $("prevBtn").addEventListener("click", () => { stop(); setStage(state.stage - 1); });
     $("nextBtn").addEventListener("click", () => { stop(); setStage(state.stage + 1); });
     $("playBtn").addEventListener("click", play);
     $("resetBtn").addEventListener("click", () => {
       stop();
-      $("labelsToggle").checked = $("hbondsToggle").checked = $("arrowsToggle").checked = true;
-      $("hydrogenToggle").checked = false;
+      state.detail = "chemical"; state.track = ""; state.comparison = false; state.isolate = false; state.arrowBuilder = false; state.arrowPick = [];
+      ["atomsToggle","labelsToggle","atomLabelsToggle","lonePairsToggle","chargesToggle","hbondsToggle","arrowsToggle","hydrogenToggle"].forEach(id => $(id).checked = true);
+      document.querySelectorAll("[data-detail]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.detail === "chemical")));
+      $("trackAtomSelect").value = "";
+      $("comparisonBtn").setAttribute("aria-pressed", "false"); $("isolateBtn").setAttribute("aria-pressed", "false"); $("arrowBuilderBtn").setAttribute("aria-pressed", "false"); $("arrowBuilderBtn").textContent = "Build the arrows";
       $("representationSelect").value = "cartoon";
       $("speedSelect").value = "3400";
       setStage(0);
@@ -326,7 +379,13 @@
     $("focusBtn").addEventListener("click", focusActiveSite);
     $("structureSelect").addEventListener("change", event => loadStructure(event.target.value));
     $("representationSelect").addEventListener("change", focusActiveSite);
-    ["labelsToggle","hbondsToggle","arrowsToggle","hydrogenToggle"].forEach(id => $(id).addEventListener("change", updateToggles));
+    ["atomsToggle","labelsToggle","atomLabelsToggle","lonePairsToggle","chargesToggle","hbondsToggle","arrowsToggle","hydrogenToggle"].forEach(id => $(id).addEventListener("change", updateToggles));
+    const updateStrategies = () => {
+      const active = [...document.querySelectorAll("[data-strategy]:checked")].map(node => node.dataset.strategy);
+      $("mechanismSvg").dataset.strategies = active.join(" ");
+    };
+    document.querySelectorAll("[data-strategy]").forEach(input => input.addEventListener("change", updateStrategies));
+    updateStrategies();
     document.querySelectorAll("[data-detail]").forEach(button => button.addEventListener("click", () => {
       state.detail = button.dataset.detail;
       document.querySelectorAll("[data-detail]").forEach(peer => peer.setAttribute("aria-pressed", String(peer === button)));
@@ -346,6 +405,11 @@
     $("speedSelect").addEventListener("change", () => { if (state.playing) { stop(); play(); } });
     $("evidenceBtn").addEventListener("click", showEvidence);
     $("copyNotesBtn").addEventListener("click", copyNotes);
+    $("tutorialBtn").addEventListener("click", () => { state.tutorial = 0; showTutorial(); $("tutorialDialog").showModal(); });
+    $("tutorialNextBtn").addEventListener("click", () => {
+      if (state.tutorial === tutorialQuestions.length - 1) return $("tutorialDialog").close();
+      state.tutorial += 1; showTutorial();
+    });
     $("fullscreenBtn").addEventListener("click", () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
     document.addEventListener("keydown", event => {
       if (event.key === "ArrowRight") { stop(); setStage(state.stage + 1); }

@@ -4,19 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Explore chymotrypsin structure and catalytic chemistry with experimental PDB coordinates.">
-  <title>Chymotrypsin Mechanism Explorer: Structure and Chemistry</title>
-  <link rel="stylesheet" href="assets/vendor/molstar/molstar.css">
+  <title>Chymotrypsin Catalytic Mechanism Explorer</title>
+  <link rel="stylesheet" href="./assets/vendor/molstar/molstar.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
     <div>
       <p class="eyebrow">Experimental structure + mechanism</p>
-      <h1>Chymotrypsin Mechanism Explorer</h1>
+      <h1>Chymotrypsin Catalytic Mechanism Explorer</h1>
     </div>
     <div class="top-actions">
       <span id="loadStatus" class="status">Loading 4CHA…</span>
       <button id="fullscreenBtn" class="button ghost" type="button">Full screen</button>
+      <button id="tutorialBtn" class="button ghost" type="button">Guided tutorial</button>
       <button id="resetBtn" class="button" type="button">Reset</button>
     </div>
   </header>
@@ -45,7 +46,17 @@
           <button id="focusBtn" class="button small" type="button">Focus active site</button>
         </div>
         <div id="molstarViewer" class="molstar-host">
-          <div class="viewer-fallback">Preparing experimental coordinates…</div>
+          <div class="viewer-fallback">
+            <svg viewBox="0 0 620 400" aria-label="Active-site schematic fallback">
+              <path d="M45 205C70 75 220 43 309 105c92-68 237-23 261 92-25 121-168 174-281 111C184 361 68 319 45 205Z" fill="#dcecf2" stroke="#6f9eb5" stroke-width="4"/>
+              <path d="M410 82q100 48 38 170q-49-35-110-7q42-69 72-163Z" fill="#fff" stroke="#6f9eb5" stroke-width="3"/>
+              <circle cx="211" cy="261" r="27" fill="#194e79"/><circle cx="305" cy="235" r="27" fill="#194e79"/><circle cx="393" cy="264" r="27" fill="#ef8b32"/>
+              <text x="178" y="307">Asp102</text><text x="280" y="196">His57</text><text x="380" y="310">Ser195</text>
+              <path d="M480 118L434 171L393 230" fill="none" stroke="#23936c" stroke-width="10"/>
+              <text x="438" y="96">specificity pocket</text><text x="315" y="361">coordinate-mapped active site</text>
+            </svg>
+            <p>Preparing experimental coordinates…</p>
+          </div>
         </div>
         <div class="distance-strip">
           <span>Asp102 OD2—His57 ND1 <strong id="aspHisDistance">—</strong></span>
@@ -116,11 +127,24 @@
         </select>
       </label>
       <div class="toggles">
-        <label><input id="labelsToggle" type="checkbox" checked> Labels</label>
+        <label><input id="atomsToggle" type="checkbox" checked> Atoms</label>
+        <label><input id="labelsToggle" type="checkbox" checked> Residue labels</label>
+        <label><input id="atomLabelsToggle" type="checkbox" checked> Atom labels</label>
+        <label><input id="lonePairsToggle" type="checkbox" checked> Lone pairs</label>
+        <label><input id="chargesToggle" type="checkbox" checked> Formal charges</label>
         <label><input id="hbondsToggle" type="checkbox" checked> H bonds</label>
         <label><input id="arrowsToggle" type="checkbox" checked> Electron arrows</label>
-        <label><input id="hydrogenToggle" type="checkbox"> Modeled H atoms</label>
+        <label><input id="hydrogenToggle" type="checkbox" checked> Hydrogen atoms</label>
       </div>
+    </section>
+
+    <section class="strategy-deck" aria-label="Catalytic strategy overlay">
+      <strong>Catalytic strategies</strong>
+      <label><input type="checkbox" data-strategy="acid" checked> General acid–base</label>
+      <label><input type="checkbox" data-strategy="covalent" checked> Covalent catalysis</label>
+      <label><input type="checkbox" data-strategy="transition" checked> Transition-state stabilization</label>
+      <label><input type="checkbox" data-strategy="electrostatic" checked> Electrostatic stabilization</label>
+      <label><input type="checkbox" data-strategy="orientation" checked> Proximity/orientation</label>
     </section>
 
     <section class="lower-grid">
@@ -158,8 +182,16 @@
     <p id="dialogBody"></p>
     <p id="dialogCitation"></p>
   </dialog>
+  <dialog id="tutorialDialog">
+    <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form>
+    <p class="eyebrow">Guided tutorial</p>
+    <h2 id="tutorialQuestion"></h2>
+    <div id="tutorialOptions" class="tutorial-options"></div>
+    <p id="tutorialFeedback" class="tutorial-feedback" aria-live="polite"></p>
+    <div class="tutorial-footer"><span id="tutorialProgress"></span><button id="tutorialNextBtn" class="button primary" type="button" disabled>Next question</button></div>
+  </dialog>
 
-  <script src="assets/vendor/molstar/molstar.js"></script>
+  <script src="./assets/vendor/molstar/molstar.js"></script>
   <script src="structure-config.js"></script>
   <script src="mechanism-data.js"></script>
   <script src="app.js"></script>
