@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="./assets/vendor/molstar/molstar.css">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="app-shell">
   <header class="topbar">
     <div>
       <p class="eyebrow">Experimental structure + mechanism</p>
@@ -36,17 +36,26 @@
       <div id="timeline" class="timeline"></div>
     </nav>
 
-    <section class="workspace">
+    <section class="workspace mechanism-workspace">
       <article class="viewer-panel" aria-label="Three-dimensional structure">
         <div class="panel-bar">
           <div>
             <strong>3D structure</strong>
             <span id="structureLabel">4CHA · free enzyme</span>
           </div>
-          <button id="focusBtn" class="button small" type="button">Focus active site</button>
+          <span id="viewerLoadState" class="viewer-state">Initializing…</span>
         </div>
-        <div id="molstarViewer" class="molstar-host">
-          <div class="viewer-fallback">
+        <div class="structure-toolbar" aria-label="Structure controls">
+          <button id="focusBtn" class="button small" type="button">Focus active site</button>
+          <button id="wholeProteinBtn" class="button small" type="button">Whole protein</button>
+          <button id="triad3dBtn" class="button small" type="button">Catalytic triad</button>
+          <button id="oxyanion3dBtn" class="button small" type="button">Oxyanion hole</button>
+          <button id="pocket3dBtn" class="button small" type="button">Specificity pocket</button>
+          <button id="orientationBtn" class="button small" type="button">Reset orientation</button>
+        </div>
+        <div class="structure-panel">
+          <div id="molstar-viewer" class="molstar-container">
+            <div class="viewer-fallback">
             <svg viewBox="0 0 620 400" aria-label="Active-site schematic fallback">
               <path d="M45 205C70 75 220 43 309 105c92-68 237-23 261 92-25 121-168 174-281 111C184 361 68 319 45 205Z" fill="#dcecf2" stroke="#6f9eb5" stroke-width="4"/>
               <path d="M410 82q100 48 38 170q-49-35-110-7q42-69 72-163Z" fill="#fff" stroke="#6f9eb5" stroke-width="3"/>
@@ -56,6 +65,8 @@
               <text x="438" y="96">specificity pocket</text><text x="315" y="361">coordinate-mapped active site</text>
             </svg>
             <p>Preparing experimental coordinates…</p>
+            <button id="retryViewerBtn" class="button small" type="button" hidden>Retry 3D viewer</button>
+            </div>
           </div>
         </div>
         <div class="distance-strip">

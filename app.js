@@ -28,6 +28,7 @@
   const atomKey = atom => `${atom.auth_asym_id}:${atom.auth_comp_id}${atom.auth_seq_id}:${atom.auth_atom_id}`;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
   const escapeXml = value => String(value).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;" }[c]));
+  let resizeObserver;
 
   function tokenize(line) {
     return line.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)?.map(v => v.replace(/^(['"])(.*)\1$/, "$2")) || [];
@@ -90,14 +91,21 @@
   async function ensureViewer() {
     if (state.viewer) return;
     if (!window.molstar?.Viewer) throw new Error("The local Mol* bundle did not initialize.");
-    state.viewer = await window.molstar.Viewer.create("molstarViewer", {
+    const container = $("molstar-viewer");
+    if (!container || container.clientWidth < 20 || container.clientHeight < 20) throw new Error("The viewer panel is not measurable yet.");
+    state.viewer = await window.molstar.Viewer.create(container, {
       layoutShowControls: false, layoutShowSequence: false, layoutShowLog: false,
-      layoutShowLeftPanel: false, viewportShowControls: true, viewportShowExpand: true,
+      layoutShowLeftPanel: false, viewportShowControls: false, viewportShowExpand: false,
       viewportShowSelectionMode: false, viewportShowAnimation: false,
-      viewportShowTrajectoryControls: false, viewportShowSettings: true,
-      viewportShowReset: true, viewportBackgroundColor: "#f8fbfc",
+      viewportShowTrajectoryControls: false, viewportShowSettings: false,
+      viewportShowReset: false, viewportBackgroundColor: "#f8fbfc",
       collapseLeftPanel: true, collapseRightPanel: true
     });
+    resizeObserver = new ResizeObserver(() => {
+      state.viewer?.plugin?.layout?.events?.updated?.next();
+      window.dispatchEvent(new Event("resize"));
+    });
+    resizeObserver.observe(container);
   }
 
   function activeSiteExpression(config) {
@@ -132,6 +140,7 @@
     $("structureSelect").value = id;
     $("structureLabel").textContent = `${config.id} · ${config.label} · ${config.resolution}`;
     $("loadStatus").textContent = `Loading ${config.id}…`;
+    $("viewerLoadState").textContent = `Loading ${config.id}…`;
     try {
       let cif = state.cache.get(id);
       if (!cif) {
@@ -147,10 +156,13 @@
       await state.viewer.loadStructureFromData(cif, "mmcif", { dataLabel: `${config.id} · ${config.label}` });
       if (token !== state.loadToken) return;
       $("loadStatus").textContent = `${config.id} ready · local coordinates`;
+      $("viewerLoadState").textContent = "Interactive 3D ready";
       if (focus) window.setTimeout(focusActiveSite, 250);
     } catch (error) {
       $("loadStatus").textContent = `Could not load ${config.id}`;
-      $("molstarViewer").innerHTML = `<div class="viewer-fallback active"><svg viewBox="0 0 620 400" aria-label="Active-site schematic fallback"><path d="M45 205C70 75 220 43 309 105c92-68 237-23 261 92-25 121-168 174-281 111C184 361 68 319 45 205Z" fill="#dcecf2" stroke="#6f9eb5" stroke-width="4"/><path d="M410 82q100 48 38 170q-49-35-110-7q42-69 72-163Z" fill="#fff" stroke="#6f9eb5" stroke-width="3"/><circle cx="211" cy="261" r="27" fill="#194e79"/><circle cx="305" cy="235" r="27" fill="#194e79"/><circle cx="393" cy="264" r="27" fill="#ef8b32"/><text x="178" y="307">Asp102</text><text x="280" y="196">His57</text><text x="380" y="310">Ser195</text><path d="M480 118L434 171L393 230" fill="none" stroke="#23936c" stroke-width="10"/></svg><p>The interactive 3D structure will become available automatically after this project is published through GitHub Pages. You can continue using the complete 2D chemical mechanism below.</p></div>`;
+      $("viewerLoadState").textContent = "Schematic fallback";
+      $("molstar-viewer").innerHTML = `<div class="viewer-fallback active"><svg viewBox="0 0 620 400" aria-label="Active-site schematic fallback"><path d="M45 205C70 75 220 43 309 105c92-68 237-23 261 92-25 121-168 174-281 111C184 361 68 319 45 205Z" fill="#dcecf2" stroke="#6f9eb5" stroke-width="4"/><path d="M410 82q100 48 38 170q-49-35-110-7q42-69 72-163Z" fill="#fff" stroke="#6f9eb5" stroke-width="3"/><circle cx="211" cy="261" r="27" fill="#194e79"/><circle cx="305" cy="235" r="27" fill="#194e79"/><circle cx="393" cy="264" r="27" fill="#ef8b32"/><text x="178" y="307">Asp102</text><text x="280" y="196">His57</text><text x="380" y="310">Ser195</text><path d="M480 118L434 171L393 230" fill="none" stroke="#23936c" stroke-width="10"/></svg><p>The interactive 3D structure will become available automatically after this project is published through GitHub Pages. You can continue using the complete 2D chemical mechanism below.</p><button id="retryViewerBtn" class="button small" type="button">Retry 3D viewer</button></div>`;
+      $("retryViewerBtn")?.addEventListener("click", () => { state.viewer = null; loadStructure(state.structure); });
       console.error(error);
     }
   }
@@ -377,6 +389,11 @@
       setStage(0);
     });
     $("focusBtn").addEventListener("click", focusActiveSite);
+    $("wholeProteinBtn").addEventListener("click", () => state.viewer?.plugin?.managers?.camera?.reset(undefined, 450));
+    $("orientationBtn").addEventListener("click", () => state.viewer?.plugin?.managers?.camera?.reset(undefined, 450));
+    $("triad3dBtn").addEventListener("click", focusActiveSite);
+    $("oxyanion3dBtn").addEventListener("click", focusActiveSite);
+    $("pocket3dBtn").addEventListener("click", focusActiveSite);
     $("structureSelect").addEventListener("change", event => loadStructure(event.target.value));
     $("representationSelect").addEventListener("change", focusActiveSite);
     ["atomsToggle","labelsToggle","atomLabelsToggle","lonePairsToggle","chargesToggle","hbondsToggle","arrowsToggle","hydrogenToggle"].forEach(id => $(id).addEventListener("change", updateToggles));
@@ -422,7 +439,7 @@
     bind();
     renderSources();
     setStage(0, { keepStructure: true });
-    await loadStructure("4cha");
+    requestAnimationFrame(() => requestAnimationFrame(() => loadStructure("4cha")));
   }
 
   window.addEventListener("DOMContentLoaded", init);
