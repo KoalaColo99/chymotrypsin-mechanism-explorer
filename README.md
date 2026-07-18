@@ -4,6 +4,8 @@
 
 This responsive, projector-friendly interactive teaches the complete canonical catalytic cycle of chymotrypsin. It emphasizes substrate recognition, the Ser195–His57–Asp102 catalytic triad, two oxyanion-stabilized tetrahedral intermediates, the covalent acyl–enzyme, product release, and enzyme regeneration.
 
+The dedicated **Catalytic Triad Chemistry** mode (`atomic.html`) expands the active site into complete local chemical structures with explicit atoms, bond orders, lone pairs, formal charges, proton tracking, an atom inspector, geometry comparisons, chemistry validation metadata, and a student electron-arrow construction activity.
+
 ## Launch locally
 
 Open `index.html` in any current browser. No server, build step, account, or internet connection is required.
@@ -26,6 +28,7 @@ Open `index.html` in any current browser. No server, build step, account, or int
 - **Strategies panel:** highlight the timeline stages where a catalytic strategy operates.
 - **Mechanism + Energy:** reveal the reaction-coordinate view and optionally compare a simplified uncatalyzed barrier.
 - **Guided Tutorial:** five scaffolded, stage-specific questions with persistent answer feedback.
+- **Catalytic Triad Chemistry:** opens the atomic-level mechanism, including the full Asp102 carboxylate, His57 imidazole, Ser195 Oγ chemistry, oxyanion-hole N–H groups, substrate peptide bond, and water during deacylation.
 - **Keyboard:** Left/Right arrows move by stage, Space plays/pauses, and R resets (when focus is not inside a form control or tutorial dialog).
 
 ## Scientific overview

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Atomic-level catalytic triad chemistry for the chymotrypsin mechanism.">
+  <title>Catalytic Triad Chemistry · Chymotrypsin Explorer</title>
+  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="atomic.css?v=3">
+</head>
+<body class="atomic-page">
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Chymotrypsin mechanism explorer</p>
+      <h1>Catalytic Triad Chemistry</h1>
+    </div>
+    <div class="header-actions">
+      <a class="button chemistry-link" href="index.html">← Overview Mechanism</a>
+      <button id="zoomToggle" class="button primary" aria-pressed="true">Zoomed to Atomic Mechanism</button>
+    </div>
+  </header>
+
+  <main class="atomic-main">
+    <section class="atomic-intro">
+      <strong>Follow the electrons:</strong>
+      <span>Asp102 organizes His57; His57 Nε2 transfers protons; Ser195 Oγ forms and breaks the transient covalent bond.</span>
+    </section>
+
+    <nav class="atomic-timeline-wrap" aria-label="Atomic mechanism stages">
+      <div id="atomicTimeline" class="atomic-timeline"></div>
+    </nav>
+
+    <section class="atomic-workspace">
+      <div class="atomic-mechanism">
+        <div class="atomic-heading">
+          <div><span id="atomicStageNumber" class="stage-kicker"></span><h2 id="atomicStageTitle"></h2></div>
+          <span id="chemistryStatus" class="chemistry-status">Chemistry validated</span>
+        </div>
+        <div class="atomic-svg-shell">
+          <svg id="atomicSvg" viewBox="0 0 1200 620" role="img" aria-labelledby="atomicSvgTitle atomicSvgDesc"></svg>
+          <div id="arrowPrompt" class="arrow-prompt" hidden aria-live="polite"></div>
+        </div>
+
+        <div class="atomic-transport">
+          <button id="atomicPrev" class="button">← Previous</button>
+          <button id="atomicNext" class="button primary">Next →</button>
+          <button id="atomicReset" class="button quiet">↺ Reset</button>
+          <button id="compareGeometry" class="button" hidden>Compare planar ↔ tetrahedral</button>
+          <button id="compareCycle" class="button" hidden>Compare start and finish</button>
+        </div>
+
+        <fieldset class="chem-controls">
+          <legend>Chemical display</legend>
+          <label><input id="contextToggle" type="checkbox" checked> Show residue context</label>
+          <label><input id="protonToggle" type="checkbox" checked> Track transferred proton</label>
+          <label><input id="atomLabelsToggle" type="checkbox" checked> Atom labels</label>
+          <label><input id="lonePairsToggle" type="checkbox" checked> Lone pairs</label>
+          <label><input id="atomicChargesToggle" type="checkbox" checked> Formal charges</label>
+          <label><input id="hydrogensToggle" type="checkbox" checked> Hydrogen atoms</label>
+          <label><input id="bondOrdersToggle" type="checkbox" checked> Bond orders</label>
+          <label><input id="atomicArrowsToggle" type="checkbox" checked> Curved arrows</label>
+          <label><input id="atomicHBondsToggle" type="checkbox" checked> Hydrogen bonds</label>
+          <label><input id="partialChargesToggle" type="checkbox"> Partial charges</label>
+          <label><input id="densityToggle" type="checkbox"> Electron-density movement</label>
+          <label><input id="isolateToggle" type="checkbox"> Isolate covalent intermediate</label>
+        </fieldset>
+      </div>
+
+      <aside class="atomic-side">
+        <section>
+          <p id="atomicMessage" class="step-message"></p>
+          <div class="reaction-strip"><strong id="reactionLabel"></strong><span id="reactionEquation"></span></div>
+        </section>
+
+        <section class="mode-block">
+          <h3>Build the Electron-Pushing Arrows</h3>
+          <label class="mode-switch"><input id="buildModeToggle" type="checkbox"> Practice arrow construction</label>
+          <p id="buildInstructions" class="hint">Select a stage with electron flow, then identify each electron source and destination.</p>
+          <div id="arrowProgress" class="arrow-progress"></div>
+        </section>
+
+        <section class="atom-inspector" aria-live="polite">
+          <h3>Atom Inspector</h3>
+          <p class="hint">Select a labeled atom in the mechanism.</p>
+          <dl id="atomDetails">
+            <dt>Atom</dt><dd>None selected</dd>
+          </dl>
+        </section>
+
+        <section id="stageQuestion" class="stage-question">
+          <h3>Check your understanding</h3>
+          <p>Which atom in His57 is positioned to accept a proton from Ser195?</p>
+          <div class="question-buttons">
+            <button class="button" data-answer="nd1">Nδ1</button>
+            <button class="button" data-answer="ne2">Nε2</button>
+          </div>
+          <p id="questionFeedback" class="feedback" aria-live="polite"></p>
+        </section>
+      </aside>
+    </section>
+
+    <section id="tetraCompare" class="tetra-compare" hidden>
+      <h2>Why the two tetrahedral intermediates are chemically different</h2>
+      <div class="compare-grid">
+        <div><h3>First tetrahedral intermediate</h3><svg id="tetraOneMini" viewBox="0 0 440 230" role="img" aria-label="First tetrahedral intermediate with peptide nitrogen attached"></svg><p>Peptide nitrogen remains attached → amine-product release.</p></div>
+        <div><h3>Second tetrahedral intermediate</h3><svg id="tetraTwoMini" viewBox="0 0 440 230" role="img" aria-label="Second tetrahedral intermediate with water-derived hydroxyl attached"></svg><p>Water-derived oxygen is attached → Ser195 release.</p></div>
+      </div>
+    </section>
+
+    <details class="validation-notes expandable">
+      <summary>Chemistry validation notes <span>Development safeguards</span></summary>
+      <ul id="validationList"></ul>
+    </details>
+  </main>
+  <script src="atomic.js?v=13"></script>
+</body>
+</html>
