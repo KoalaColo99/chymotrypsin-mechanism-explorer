@@ -97,8 +97,21 @@
           <button id="comparisonBtn" class="button small" type="button">Compare geometry</button>
           <button id="isolateBtn" class="button small" type="button">Isolate acyl–enzyme bond</button>
           <button id="arrowBuilderBtn" class="button small" type="button">Build the arrows</button>
+          <button id="chemFitBtn" class="button small" type="button">Fit chemistry</button>
+          <button id="chemZoomInBtn" class="button small" type="button">Zoom in</button>
+          <button id="chemZoomOutBtn" class="button small" type="button">Zoom out</button>
+          <button id="chemResetBtn" class="button small" type="button">Reset chemistry view</button>
         </div>
-        <svg id="mechanismSvg" viewBox="0 0 760 560" role="img" aria-labelledby="mechanismTitle mechanismDesc"></svg>
+        <div class="residue-role-row">
+          <div><strong>Asp102</strong><span>Organizes His57 and stabilizes charge redistribution</span></div>
+          <div><strong>His57</strong><span>General base ⇄ general acid</span></div>
+          <div><strong>Ser195</strong><span>Oγ — catalytic nucleophile</span></div>
+        </div>
+        <div class="chemistry-canvas">
+          <svg id="chemistry-svg" viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="mechanismTitle mechanismDesc">
+            <g id="chemistry-root"></g>
+          </svg>
+        </div>
         <div class="chem-legend">
           <span><i class="dot ser"></i>Ser195</span>
           <span><i class="dot his"></i>His57</span>
@@ -106,6 +119,7 @@
           <span><i class="dash"></i>hydrogen bond</span>
           <span><i class="solid"></i>covalent bond</span>
         </div>
+        <div id="chemistryExplanation" class="chemistry-explanation"></div>
       </article>
     </section>
 
