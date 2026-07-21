@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const BUILD_ID = "2026.07.21-r1";
+  const BUILD_ID = "2026.07.21-r2";
 
   const stages = window.MECHANISM_STAGES;
   const structures = window.STRUCTURES;
@@ -326,7 +326,7 @@
         ${covalent?`<path class="bond covalent ${mode==="attack"?"forming":""}" d="M754 237L599 240"/><text class="bond-label" x="620" y="218">Ser Oγ–C</text>`:`<path class="attack-geometry" d="M754 237L600 239"/>`}
         </g>` : ""}
       ${tetra?`<g id="hydrogen-bonds-layer-extra" class="hydrogen-bonds-layer oxyanion-focus" transform="translate(260 0)"><text class="oxyanion-note" x="610" y="36" text-anchor="middle">Two backbone N–H groups stabilize the negatively charged oxyanion</text><text class="donor" x="505" y="82">Gly193 backbone N–H</text><text class="donor" x="650" y="82">Ser195 backbone N–H</text><path class="donor-bond" d="M548 92L575 116"/><path class="donor-bond" d="M680 92L650 116"/><path class="hbond" d="M575 116L610 154"/><path class="hbond" d="M650 116L610 154"/></g>`:""}
-      ${water?`<g transform="translate(260 0)">${atom("waterO",505,414,mode==="water"?"O⁻":"OH","water-oxygen","Water oxygen|Oxygen|"+(mode==="water"?"−1":"0")+"|"+(mode==="water"?"1":"2")+"|"+(mode==="water"?"3":"2")+"|Water-derived nucleophile")}<path class="bond water-bond" d="M505 397L505 375"/><text class="fragment-label" x="480" y="365">${mode==="water"?"activated H–O:":"water-derived OH"}</text>${["waterattack","tetrahedral2"].includes(mode)?`<path class="bond forming" d="M516 402L600 266"/>`:""}</g>`:""}
+      ${water?`<g class="water-entry" transform="translate(260 0)">${atom("waterO",505,414,mode==="water"?"O⁻":"OH","water-oxygen","Water oxygen|Oxygen|"+(mode==="water"?"−1":"0")+"|"+(mode==="water"?"1":"2")+"|"+(mode==="water"?"3":"2")+"|Water-derived nucleophile")}<path class="bond water-bond" d="M505 397L505 375"/><text class="fragment-label" x="480" y="365">${mode==="water"?"activated H–O:":"water-derived OH"}</text>${["waterattack","tetrahedral2"].includes(mode)?`<path class="bond forming" d="M516 402L600 266"/>`:""}</g>`:""}
       ${product?`<g class="departing-fragment" transform="translate(260 0)">${mode==="collapse"?`${atom("peptideN",618,414,"NH₂","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|Amine-side product")}<text class="fragment-label" x="643" y="420">–R_N · amine peptide fragment departing</text>`:`<text class="fragment-label" x="536" y="430">R_C–C(=O)O(H) · carboxyl peptide fragment departing</text>`}</g>`:""}
       <g id="electron-arrows-layer" class="electron-arrows-layer">${arrows.join("")}</g>
       ${state.comparison?`<g class="comparison-inset"><text x="34" y="405">Planar carbonyl: sp², C=O</text><path d="M55 455L105 425M55 455L105 485M55 455L15 455"/><text x="34" y="515">Tetrahedral: sp³, four σ bonds</text></g>`:""}
@@ -427,7 +427,9 @@
     drawEnergy();
     validateChemistry(stage);
     $("playbackStatus").textContent = `${state.playing ? "Playing" : "Paused at"} step ${state.stage + 1}: ${stage.short}`;
-    if (!options.keepStructure && stage.pdb !== state.structure) loadStructure(stage.pdb);
+    // Playback keeps one experimentally loaded active-site scaffold and one camera.
+    // Alternate structures are loaded only when the user explicitly chooses one.
+    if (options.syncStructure && stage.pdb !== state.structure) loadStructure(stage.pdb, false);
   }
 
   function updateToggles() {
