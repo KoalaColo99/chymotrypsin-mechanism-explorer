@@ -6,7 +6,7 @@
   <meta name="description" content="Explore chymotrypsin structure and catalytic chemistry with experimental PDB coordinates.">
   <title>Chymotrypsin Catalytic Mechanism Explorer</title>
   <link rel="stylesheet" href="./assets/vendor/molstar/molstar.css">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260721r1">
 </head>
 <body class="app-shell">
   <header class="topbar">
@@ -35,6 +35,13 @@
     <nav class="timeline-shell" aria-label="Catalytic mechanism stages">
       <div id="timeline" class="timeline"></div>
     </nav>
+    <div class="mechanism-playback" aria-label="Mechanism playback controls">
+      <button id="prevBtn" class="button" type="button">← Previous step</button>
+      <button id="playBtn" class="button primary" type="button">Play mechanism</button>
+      <button id="nextBtn" class="button" type="button">Next step →</button>
+      <button id="restartBtn" class="button" type="button">Restart</button>
+      <span id="playbackStatus" role="status">Paused at step 1</span>
+    </div>
 
     <section class="workspace mechanism-workspace">
       <article class="viewer-panel" aria-label="Three-dimensional structure">
@@ -46,12 +53,14 @@
           <span id="viewerLoadState" class="viewer-state">Initializing…</span>
         </div>
         <div class="structure-toolbar" aria-label="Structure controls">
-          <button id="focusBtn" class="button small" type="button">Focus active site</button>
-          <button id="wholeProteinBtn" class="button small" type="button">Whole protein</button>
-          <button id="triad3dBtn" class="button small" type="button">Catalytic triad</button>
-          <button id="oxyanion3dBtn" class="button small" type="button">Oxyanion hole</button>
-          <button id="pocket3dBtn" class="button small" type="button">Specificity pocket</button>
+          <button id="focusBtn" class="button small" type="button" aria-pressed="true">Focus active site</button>
+          <button id="wholeProteinBtn" class="button small" type="button" aria-pressed="false">Whole protein</button>
           <button id="orientationBtn" class="button small" type="button">Reset orientation</button>
+          <details class="feature-disclosure"><summary>Explore structural features</summary><div>
+            <button id="triad3dBtn" class="button small" type="button">Catalytic triad</button>
+            <button id="oxyanion3dBtn" class="button small" type="button">Oxyanion hole</button>
+            <button id="pocket3dBtn" class="button small" type="button">Specificity pocket</button>
+          </div></details>
         </div>
         <div class="structure-panel">
           <div id="molstar-viewer" class="molstar-container">
@@ -74,6 +83,7 @@
           <span>His57 NE2—Ser195 OG <strong id="hisSerDistance">—</strong></span>
           <span id="validationState">Validating residue mapping…</span>
         </div>
+        <div id="oxyanionCaption" class="oxyanion-caption" hidden>Two backbone N–H groups stabilize the negatively charged oxyanion.</div>
       </article>
 
       <article class="chemistry-panel" aria-label="Two-dimensional chemistry">
@@ -126,11 +136,6 @@
     </section>
 
     <section class="control-deck">
-      <div class="transport">
-        <button id="prevBtn" class="button" type="button">← Previous</button>
-        <button id="playBtn" class="button primary" type="button">Play</button>
-        <button id="nextBtn" class="button" type="button">Next →</button>
-      </div>
       <label>Structure
         <select id="structureSelect">
           <option value="4cha">4CHA · free enzyme</option>
@@ -149,7 +154,7 @@
       <label>Speed
         <select id="speedSelect">
           <option value="5200">Slow</option>
-          <option value="3400" selected>Medium</option>
+          <option value="3000" selected>Normal</option>
           <option value="1900">Fast</option>
         </select>
       </label>
@@ -201,6 +206,7 @@
       </div>
     </details>
   </main>
+  <footer class="build-footer">Chymotrypsin Mechanism Explorer · <span id="buildId">build loading…</span></footer>
 
   <dialog id="evidenceDialog">
     <form method="dialog"><button class="dialog-close" aria-label="Close">×</button></form>
@@ -221,6 +227,6 @@
   <script src="./assets/vendor/molstar/molstar.js"></script>
   <script src="structure-config.js"></script>
   <script src="mechanism-data.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260721r1"></script>
 </body>
 </html>

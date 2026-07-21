@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const BUILD_ID = "2026.07.21-r1";
 
   const stages = window.MECHANISM_STAGES;
   const structures = window.STRUCTURES;
@@ -30,7 +31,7 @@
   const escapeXml = value => String(value).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;" }[c]));
   let resizeObserver;
   const structureViewState = {
-    mode: "whole-protein", focusedResidues: [], showSurface: false, proteinOpacity: 1
+    mode: "focus-active-site", focusedResidues: window.ACTIVE_SITE_RESIDUES, showSurface: false, proteinOpacity: .28
   };
   const structureModes = {
     "focus-active-site": { residues: window.ACTIVE_SITE_RESIDUES, status: "Viewing active site: residues within the catalytic pocket", radius: 9 },
@@ -117,6 +118,7 @@
     const container = $("molstar-viewer");
     if (!container || container.clientWidth < 20 || container.clientHeight < 20) throw new Error("The viewer panel is not measurable yet.");
     state.viewer = await window.molstar.Viewer.create(container, {
+      layoutIsExpanded: false,
       layoutShowControls: false, layoutShowSequence: false, layoutShowLog: false,
       layoutShowLeftPanel: false, viewportShowControls: false, viewportShowExpand: false,
       viewportShowSelectionMode: false, viewportShowAnimation: false,
@@ -169,6 +171,7 @@
     button.disabled = true;
     updateStructureButtons(buttonId);
     structureViewState.mode = mode;
+    $("oxyanionCaption").hidden = mode !== "oxyanion-hole";
     const fallback = applyFallbackStructureMode(mode);
     try {
       if (mode === "whole-protein" || mode === "reset-orientation") {
@@ -315,21 +318,25 @@
       ${!serMinus && !covalent?`<path class="bond" d="M564 108L589 108"/>${atom("proton",600,108,"H*","hydrogen","Transferred proton H*|Hydrogen|0|1|0|Ser195 proton")}`:""}
       ${lone(543,78,serMinus?3:2,"vertical")}</g></g>
       <g id="hydrogen-bonds-layer" class="hydrogen-bonds-layer"><path class="hbond" d="M322 274L530 263"/><path class="hbond" d="M658 301L1021 257"/></g>
-      ${bound ? `<g class="${state.isolate&&mode==="acyl"?"dimmed":""}" transform="translate(260 0)"><text class="fragment-label" x="462" y="222">R_C</text><path class="bond substrate" d="M486 217L586 247"/>
+      ${bound ? `<g class="reaction-fragment ${state.isolate&&mode==="acyl"?"dimmed":""}" transform="translate(260 0)"><text class="fragment-label" x="462" y="222">peptide fragment</text><path class="bond substrate" d="M486 217L586 247"/>
         ${atom("carbonylC",610,252,"C","carbon","Carbonyl carbon|Carbon|0|"+(tetra?"4":"3")+"|0|"+(tetra?"tetrahedral; sp³":"electrophile; trigonal planar; sp²"))}
         ${atom("carbonylO",610,170,tetra?"O⁻":"O","oxygen","Carbonyl oxygen|Oxygen|"+(tetra?"−1":"0")+"|"+(tetra?"1":"2")+"|"+(tetra?"3":"2")+"|"+(tetra?"Oxyanion":"Carbonyl oxygen"))}
         <path class="bond ${carbonylDouble?"double":""}" d="M610 235L610 187"/>
         ${peptideAttached?`<path class="bond scissile ${mode==="collapse"?"breaking":""}" d="M627 252L674 252"/>${atom("peptideN",691,252,mode==="collapse"?"NH₂":"NH","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|"+(mode==="collapse"?"Amine-side product":"Leaving group"))}<text class="fragment-label" x="713" y="257">–R_N</text><text class="bond-label" x="642" y="281">scissile peptide bond</text>`:""}
         ${covalent?`<path class="bond covalent ${mode==="attack"?"forming":""}" d="M754 237L599 240"/><text class="bond-label" x="620" y="218">Ser Oγ–C</text>`:`<path class="attack-geometry" d="M754 237L600 239"/>`}
         </g>` : ""}
-      ${tetra?`<g id="hydrogen-bonds-layer-extra" class="hydrogen-bonds-layer" transform="translate(260 0)"><path class="hbond" d="M610 154L535 300"/><path class="hbond" d="M610 154L662 300"/><text class="donor" x="470" y="323">Gly193 N–H</text><text class="donor" x="640" y="323">Ser195 backbone N–H</text></g>`:""}
+      ${tetra?`<g id="hydrogen-bonds-layer-extra" class="hydrogen-bonds-layer oxyanion-focus" transform="translate(260 0)"><text class="oxyanion-note" x="610" y="36" text-anchor="middle">Two backbone N–H groups stabilize the negatively charged oxyanion</text><text class="donor" x="505" y="82">Gly193 backbone N–H</text><text class="donor" x="650" y="82">Ser195 backbone N–H</text><path class="donor-bond" d="M548 92L575 116"/><path class="donor-bond" d="M680 92L650 116"/><path class="hbond" d="M575 116L610 154"/><path class="hbond" d="M650 116L610 154"/></g>`:""}
       ${water?`<g transform="translate(260 0)">${atom("waterO",505,414,mode==="water"?"O⁻":"OH","water-oxygen","Water oxygen|Oxygen|"+(mode==="water"?"−1":"0")+"|"+(mode==="water"?"1":"2")+"|"+(mode==="water"?"3":"2")+"|Water-derived nucleophile")}<path class="bond water-bond" d="M505 397L505 375"/><text class="fragment-label" x="480" y="365">${mode==="water"?"activated H–O:":"water-derived OH"}</text>${["waterattack","tetrahedral2"].includes(mode)?`<path class="bond forming" d="M516 402L600 266"/>`:""}</g>`:""}
-      ${product?`<g transform="translate(260 0)">${mode==="collapse"?`${atom("peptideN",618,414,"NH₂","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|Amine-side product")}<text class="fragment-label" x="643" y="420">–R_N · amine-side product</text>`:`<text class="fragment-label" x="536" y="430">R_C–C(=O)O(H) · carboxyl-side product</text>`}</g>`:""}
+      ${product?`<g class="departing-fragment" transform="translate(260 0)">${mode==="collapse"?`${atom("peptideN",618,414,"NH₂","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|Amine-side product")}<text class="fragment-label" x="643" y="420">–R_N · amine peptide fragment departing</text>`:`<text class="fragment-label" x="536" y="430">R_C–C(=O)O(H) · carboxyl peptide fragment departing</text>`}</g>`:""}
       <g id="electron-arrows-layer" class="electron-arrows-layer">${arrows.join("")}</g>
       ${state.comparison?`<g class="comparison-inset"><text x="34" y="405">Planar carbonyl: sp², C=O</text><path d="M55 455L105 425M55 455L105 485M55 455L15 455"/><text x="34" y="515">Tetrahedral: sp³, four σ bonds</text></g>`:""}
       `;
     $("chemistryExplanation").innerHTML = `<span class="explanation-icon" aria-hidden="true">i</span><div><strong>What’s happening?</strong><p>${escapeXml(stage.chemistry)}</p></div>`;
     $("chemistry-svg").classList.toggle("isolate", state.isolate);
+    $("chemistry-svg").classList.toggle("playing", state.playing);
+    $("chemistry-svg").classList.toggle("tetrahedral-emphasis", tetra);
+    $("chemistry-svg").dataset.bonds = mode;
+    $("oxyanionCaption").hidden = !tetra && structureViewState.mode !== "oxyanion-hole";
     $("chemistry-svg").dataset.strategies = [...document.querySelectorAll("[data-strategy]:checked")].map(node => node.dataset.strategy).join(" ");
     document.querySelectorAll(".atom-node").forEach(node => node.addEventListener("click", () => inspectAtom(node)));
     updateToggles();
@@ -395,7 +402,7 @@
 
   function renderTimeline() {
     $("timeline").innerHTML = stages.map((stage, i) => `<button class="stage-btn" data-stage="${i}" aria-current="${i === state.stage ? "step" : "false"}" title="${escapeXml(stage.title)}"><b>${i + 1}</b>${escapeXml(stage.short)}</button>`).join("");
-    document.querySelectorAll("[data-stage]").forEach(button => button.addEventListener("click", () => setStage(Number(button.dataset.stage))));
+    document.querySelectorAll("[data-stage]").forEach(button => button.addEventListener("click", () => { stop(); setStage(Number(button.dataset.stage)); }));
   }
 
   function renderSources() {
@@ -419,6 +426,7 @@
     renderTimeline();
     drawEnergy();
     validateChemistry(stage);
+    $("playbackStatus").textContent = `${state.playing ? "Playing" : "Paused at"} step ${state.stage + 1}: ${stage.short}`;
     if (!options.keepStructure && stage.pdb !== state.structure) loadStructure(stage.pdb);
   }
 
@@ -448,21 +456,32 @@
   }
 
   function stop() {
-    window.clearInterval(state.timer);
+    window.clearTimeout(state.timer);
     state.timer = null;
     state.playing = false;
-    $("playBtn").textContent = "Play";
+    $("playBtn").textContent = "Play mechanism";
+    $("playBtn").setAttribute("aria-pressed", "false");
+    $("chemistry-svg")?.classList.remove("playing");
+    if ($("playbackStatus")) $("playbackStatus").textContent = `Paused at step ${state.stage + 1}: ${stages[state.stage].short}`;
   }
 
   function play() {
     if (state.playing) return stop();
     state.playing = true;
     $("playBtn").textContent = "Pause";
+    $("playBtn").setAttribute("aria-pressed", "true");
     const advance = () => {
       if (state.stage === stages.length - 1) return stop();
       setStage(state.stage + 1);
+      schedule();
     };
-    state.timer = window.setInterval(advance, Number($("speedSelect").value));
+    const schedule = () => {
+      const base = Number($("speedSelect").value);
+      const hold = [4, 6, 9].includes(state.stage) ? Math.max(4500, base * 1.5) : base;
+      state.timer = window.setTimeout(advance, hold);
+    };
+    setStage(state.stage, { keepStructure: true });
+    schedule();
   }
 
   function showEvidence() {
@@ -500,6 +519,7 @@
   function bind() {
     $("prevBtn").addEventListener("click", () => { stop(); setStage(state.stage - 1); });
     $("nextBtn").addEventListener("click", () => { stop(); setStage(state.stage + 1); });
+    $("restartBtn").addEventListener("click", () => { stop(); setStage(0); });
     $("playBtn").addEventListener("click", play);
     $("resetBtn").addEventListener("click", () => {
       stop();
@@ -509,7 +529,7 @@
       $("trackAtomSelect").value = "";
       $("comparisonBtn").setAttribute("aria-pressed", "false"); $("isolateBtn").setAttribute("aria-pressed", "false"); $("arrowBuilderBtn").setAttribute("aria-pressed", "false"); $("arrowBuilderBtn").textContent = "Build the arrows";
       $("representationSelect").value = "cartoon";
-      $("speedSelect").value = "3400";
+      $("speedSelect").value = "3000";
       setStage(0);
     });
     $("focusBtn").addEventListener("click", () => applyStructureMode("focus-active-site", "focusBtn"));
@@ -564,6 +584,8 @@
   }
 
   async function init() {
+    $("buildId").textContent = BUILD_ID;
+    console.info(`[build] Chymotrypsin Mechanism Explorer ${BUILD_ID}`);
     bind();
     renderSources();
     setStage(0, { keepStructure: true });
