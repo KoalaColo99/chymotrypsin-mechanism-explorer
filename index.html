@@ -6,7 +6,7 @@
   <meta name="description" content="Explore chymotrypsin structure and catalytic chemistry with experimental PDB coordinates.">
   <title>Chymotrypsin Catalytic Mechanism Explorer</title>
   <link rel="stylesheet" href="./assets/vendor/molstar/molstar.css">
-  <link rel="stylesheet" href="styles.css?v=20260721r5">
+  <link rel="stylesheet" href="styles.css?v=20260721r6">
 </head>
 <body class="app-shell">
   <header class="topbar">
@@ -24,34 +24,34 @@
 
   <main>
     <section class="stage-header" aria-live="polite">
-      <div>
+      <div class="stage-copy">
         <p id="stageKicker" class="eyebrow">Stage 1 of 12 · Recognition</p>
         <h2 id="stageTitle">Free enzyme</h2>
         <p id="stageSummary">The catalytic residues are preorganized in the resting enzyme.</p>
       </div>
-      <button id="evidenceBtn" class="evidence-badge" type="button">Experimental structure</button>
+      <div class="mechanism-playback" aria-label="Mechanism playback controls">
+        <button id="playBtn" class="button primary" type="button">Pause</button>
+        <button id="prevBtn" class="button" type="button">◀ Prev</button>
+        <button id="nextBtn" class="button" type="button">Next ▶</button>
+        <button id="restartBtn" class="button" type="button">↶ Restart</button>
+        <button id="evidenceBtn" class="evidence-badge" type="button">Experimental structure</button>
+        <span id="playbackStatus" role="status" class="sr-only">Paused at step 1</span>
+      </div>
     </section>
 
     <nav class="timeline-shell" aria-label="Catalytic mechanism stages">
       <div id="timeline" class="timeline"></div>
     </nav>
-    <div class="mechanism-playback" aria-label="Mechanism playback controls">
-      <button id="prevBtn" class="button" type="button">← Previous step</button>
-      <button id="playBtn" class="button primary" type="button">Play mechanism</button>
-      <button id="nextBtn" class="button" type="button">Next step →</button>
-      <button id="restartBtn" class="button" type="button">Restart</button>
-      <span id="playbackStatus" role="status">Paused at step 1</span>
-    </div>
-
     <section class="workspace mechanism-workspace">
       <article class="viewer-panel" aria-label="Three-dimensional structure">
         <div class="panel-bar">
           <div>
-            <strong>3D structure</strong>
+            <strong>Active site</strong>
             <span id="structureLabel">4CHA · free enzyme</span>
             <small>Protein coordinates are experimental. Substrate motion, hydrogens, transient bonds, and intermediates are explanatory models.</small>
           </div>
-          <span id="viewerLoadState" class="viewer-state">Initializing…</span>
+          <div class="structure-key" aria-label="Structure legend"><span><i class="key-dot protein"></i>Protein (experimental)</span><span><i class="key-dot modeled"></i>Substrate / water (modeled)</span><span><i class="key-dot current"></i>Key atoms (current step)</span></div>
+          <span id="viewerLoadState" class="viewer-state sr-only">Initializing…</span>
         </div>
         <div class="structure-toolbar" aria-label="Structure controls">
           <button id="focusBtn" class="button small" type="button" aria-pressed="true">Focus active site</button>
@@ -98,6 +98,7 @@
       <article class="chemistry-panel" aria-label="Two-dimensional chemistry">
         <div class="panel-bar">
           <div><strong>2D chemistry</strong><span id="chemistryLabel">Catalytic triad</span></div>
+          <div class="mechanism-key" aria-label="Mechanism legend"><span><i class="pair"><b></b><b></b></i>lone pair</span><span><i class="dash"></i>hydrogen bond</span><span class="arrow-key">⟶</span><span>electron flow</span></div>
           <div class="detail-switch" role="group" aria-label="Chemical detail">
             <button type="button" data-detail="conceptual">Conceptual</button>
             <button type="button" data-detail="chemical" aria-pressed="true">Chemical</button>
@@ -149,9 +150,16 @@
         </div>
         <svg id="energySvg" viewBox="0 0 1100 235" role="img" aria-label="Schematic free-energy profile — relative energies are qualitative"></svg>
       </article>
-      <div class="site-comparison" aria-label="Specificity pocket and oxyanion hole comparison">
-        <div><strong>Specificity pocket</strong><span>What side chain fits?</span><p>Binds the aromatic P1 side chain and positions the scissile bond.</p></div>
-        <div><strong>Oxyanion hole</strong><span>How is the tetrahedral negative charge stabilized?</span><p>Backbone N–H donors stabilize the substrate oxyanion.</p></div>
+      <aside class="specificity-card" aria-label="Chymotrypsin specificity">
+        <strong>Chymotrypsin specificity</strong>
+        <p>Prefers bulky aromatic P1 side chains.</p>
+        <div class="specificity-structures">
+          <figure><svg viewBox="0 0 80 76" aria-label="Phenylalanine side chain"><path d="M10 63L30 51L30 28L50 16L70 28L70 51L50 63L30 51M33 31L49 22M65 31L65 48M49 58L34 49"/></svg><figcaption>Phe (F)</figcaption></figure>
+          <figure><svg viewBox="0 0 80 76" aria-label="Tyrosine side chain"><path d="M10 63L30 51L30 28L50 16L70 28L70 51L50 63L30 51M33 31L49 22M65 31L65 48M49 58L34 49M50 16V5"/><text x="55" y="10">OH</text></svg><figcaption>Tyr (Y)</figcaption></figure>
+          <figure><svg viewBox="0 0 92 76" aria-label="Tryptophan side chain"><path d="M8 63L27 51L27 29L46 17L65 28L65 50L46 62L27 51M65 28L82 22L89 39L76 53L65 50M31 31L45 23M59 31L59 47"/><text x="69" y="64">NH</text></svg><figcaption>Trp (W)</figcaption></figure>
+        </div>
+        <p class="specificity-note">Cleavage occurs on the carbonyl side of the aromatic residue.</p>
+      </aside>
       </div>
     </section>
 
@@ -241,6 +249,6 @@
   <script src="./assets/vendor/molstar/molstar.js"></script>
   <script src="structure-config.js"></script>
   <script src="mechanism-data.js"></script>
-  <script src="app.js?v=20260721r5"></script>
+  <script src="app.js?v=20260721r6b"></script>
 </body>
 </html>
