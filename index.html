@@ -6,7 +6,7 @@
   <meta name="description" content="Explore chymotrypsin structure and catalytic chemistry with experimental PDB coordinates.">
   <title>Chymotrypsin Catalytic Mechanism Explorer</title>
   <link rel="stylesheet" href="./assets/vendor/molstar/molstar.css">
-  <link rel="stylesheet" href="styles.css?v=20260721r3">
+  <link rel="stylesheet" href="styles.css?v=20260721r4">
 </head>
 <body class="app-shell">
   <header class="topbar">
@@ -49,7 +49,7 @@
           <div>
             <strong>3D structure</strong>
             <span id="structureLabel">4CHA · free enzyme</span>
-            <small>Experimental coordinates · hydrogens and reaction changes are explanatory models</small>
+            <small>Protein coordinates are experimental. Substrate motion, hydrogens, transient bonds, and intermediates are explanatory models.</small>
           </div>
           <span id="viewerLoadState" class="viewer-state">Initializing…</span>
         </div>
@@ -78,7 +78,15 @@
             <button id="retryViewerBtn" class="button small" type="button" hidden>Retry 3D viewer</button>
             </div>
           </div>
+          <svg id="structureOverlay" class="structure-overlay" viewBox="0 0 620 400" aria-label="Explanatory substrate and product motion overlay">
+            <path class="modeled-path" d="M590 96Q515 120 462 166Q430 195 398 238"/>
+            <g class="modeled-substrate"><path d="M560 94L512 128L472 174L426 214"/><polygon points="506,126 488,108 466,119 468,146 493,150"/><circle cx="426" cy="214" r="8"/><text x="486" y="92">P1 aromatic side chain</text></g>
+            <g class="modeled-water"><circle cx="510" cy="315" r="9"/><text x="525" y="321">H₂O</text></g>
+            <g class="modeled-product first-product"><path d="M426 214Q500 245 568 270"/><text x="500" y="258">amine product</text></g>
+            <g class="modeled-product second-product"><path d="M426 214Q500 180 575 160"/><text x="494" y="150">carboxyl product</text></g>
+          </svg>
         </div>
+        <div class="specificity-reminder"><strong>Chymotrypsin specificity</strong><span>Preferentially cleaves on the carbonyl side of bulky aromatic P1 residues.</span><span class="p1-key"><b>Phe</b><b>Tyr</b><b>Trp</b> · Preferred P1 side chains</span></div>
         <div class="distance-strip">
           <span>Asp102 OD2—His57 ND1 <strong id="aspHisDistance">—</strong></span>
           <span>His57 NE2—Ser195 OG <strong id="hisSerDistance">—</strong></span>
@@ -94,6 +102,7 @@
             <button type="button" data-detail="conceptual">Conceptual</button>
             <button type="button" data-detail="chemical" aria-pressed="true">Chemical</button>
             <button type="button" data-detail="electron">Full electron flow</button>
+            <button id="reactionFocusBtn" type="button" aria-pressed="false">Reaction-center focus</button>
           </div>
         </div>
         <details class="advanced-disclosure"><summary>Advanced chemistry</summary><div class="chem-tools">
@@ -131,6 +140,19 @@
         <div id="stageCheckpoint" class="stage-checkpoint" role="status"></div>
         <div class="role-notes"><span><strong>Asp102:</strong> hydrogen-bonds with His57, helping orient the imidazole ring and tune His57 for proton transfer.</span><span><strong>Ser195 side-chain Oγ:</strong> nucleophile.</span><span><strong>Ser195 backbone N–H:</strong> oxyanion-hole donor.</span></div>
       </article>
+    </section>
+
+    <section class="energy-region" aria-label="Schematic reaction energy">
+      <article class="coordinate-panel">
+        <div class="panel-bar">
+          <div><strong>Schematic free-energy profile</strong><span>Relative energies are qualitative; stages are explanatory positions along a continuous coordinate.</span></div>
+        </div>
+        <svg id="energySvg" viewBox="0 0 1100 235" role="img" aria-label="Schematic free-energy profile — relative energies are qualitative"></svg>
+      </article>
+      <div class="site-comparison" aria-label="Specificity pocket and oxyanion hole comparison">
+        <div><strong>Specificity pocket</strong><span>What side chain fits?</span><p>Binds the aromatic P1 side chain and positions the scissile bond.</p></div>
+        <div><strong>Oxyanion hole</strong><span>How is the tetrahedral negative charge stabilized?</span><p>Backbone N–H donors stabilize the substrate oxyanion.</p></div>
+      </div>
     </section>
 
     <details class="advanced-disclosure advanced-structure"><summary>Advanced structure</summary><section class="control-deck">
@@ -177,14 +199,7 @@
       <label><input type="checkbox" data-strategy="orientation" checked> Proximity/orientation</label>
     </section>
 
-    <section class="lower-grid">
-      <article class="coordinate-panel">
-        <div class="panel-bar">
-          <div><strong>Reaction coordinate</strong><span>Conceptual energy profile; not calculated from the PDB files</span></div>
-          <label class="profile-toggle"><input id="energyDetailToggle" type="checkbox" checked> Detailed four-barrier profile</label>
-        </div>
-        <svg id="energySvg" viewBox="0 0 1100 235" role="img" aria-label="Clickable conceptual reaction coordinate"></svg>
-      </article>
+    <section class="lower-grid teaching-notes-grid">
       <aside class="notes-panel">
         <h3>What changed?</h3>
         <dl id="changeList" class="change-list"></dl>
@@ -226,6 +241,6 @@
   <script src="./assets/vendor/molstar/molstar.js"></script>
   <script src="structure-config.js"></script>
   <script src="mechanism-data.js"></script>
-  <script src="app.js?v=20260721r3"></script>
+  <script src="app.js?v=20260721r4"></script>
 </body>
 </html>

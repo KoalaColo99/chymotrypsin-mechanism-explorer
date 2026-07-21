@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const BUILD_ID = "2026.07.21-r3";
+  const BUILD_ID = "2026.07.21-r4";
   const stageCheckpoints = [
     "Ser195 is neutral; His57 is positioned to accept its proton.",
     "The specificity pocket positions the scissile carbonyl beside Ser195.",
@@ -34,7 +34,7 @@
   ];
   const $ = id => document.getElementById(id);
   const state = {
-    stage: 0, structure: "4cha", viewer: null, timer: null, playing: false,
+    stage: 0, structure: "4cha", viewer: null, timer: null, playing: false, reactionFocus: false,
     cache: new Map(), atoms: [], loadToken: 0, detail: "chemical",
     track: "", comparison: false, isolate: false, arrowBuilder: false, arrowPick: [],
     tutorial: 0, chemistryView: { x: 0, y: 0, width: 1200, height: 520 }
@@ -293,10 +293,13 @@
       const star = label.includes("*") ? "*" : "";
       return `<g class="atom-node ${cls}${tracked(key)}" data-atom="${key}" data-info="${escapeXml(info)}"><circle class="atom-hit" cx="${x}" cy="${y}" r="22"/><text class="atom-symbol" x="${x}" y="${y+8}" text-anchor="middle">${symbol}</text>${charge ? `<text class="formal-charge" x="${x+15}" y="${y-12}">${charge}</text>` : ""}${star ? `<text class="atom-star" x="${x+13}" y="${y-10}">*</text>` : ""}</g>`;
     };
-    const lone = (x,y,n=1,orientation="horizontal") => chemical ? Array.from({length:n},(_,i)=>{
-      const dx = orientation === "vertical" ? 0 : i * 15;
-      const dy = orientation === "vertical" ? i * 15 : 0;
-      return `<g class="lone-pair" transform="translate(${x+dx} ${y+dy})"><circle cx="0" cy="0" r="2.5"/><circle cx="7" cy="0" r="2.5"/></g>`;
+    const pairAnchors = {
+      top:[0,-30,0], "upper-right":[24,-23,45], right:[31,0,90], "lower-right":[24,23,135],
+      bottom:[0,31,0], "lower-left":[-24,23,45], left:[-31,0,90], "upper-left":[-24,-23,135]
+    };
+    const loneAround = (owner,x,y,anchors=[]) => chemical ? anchors.map((anchor,index)=>{
+      const [dx,dy,rotation] = pairAnchors[anchor];
+      return `<g class="lone-pair" data-owner="${owner}" data-anchor="${anchor}" transform="translate(${x+dx} ${y+dy}) rotate(${rotation})"><circle cx="-4" cy="0" r="2.7"/><circle cx="4" cy="0" r="2.7"/></g>`;
     }).join("") : "";
     const arrows = [];
     if (full && mode === "activation") arrows.push(`<path class="electron-arrow proton-arrow" d="M658 300Q700 258 748 257"/><path class="electron-arrow bond-return-arrow" d="M770 252Q805 225 832 254"/>`);
@@ -323,14 +326,14 @@
       <path class="bond" d="M48 108L88 108L122 82"/><path class="bond double" d="M122 79L157 57"/><path class="bond" d="M126 87L161 112"/>
       <text class="fragment" x="38" y="113">Protein–CH₂</text>${atom("aspOD1",170,52,"O","oxygen","Asp102 OD1|Oxygen|0|1|2|Carboxylate oxygen")}
       ${atom("aspOD2",174,118,"O⁻","oxygen","Asp102 OD2|Oxygen|−1|1|3|Hydrogen-bond acceptor")}${chemical?`<text class="atom-label" x="182" y="37">OD1</text><text class="atom-label" x="184" y="139">OD2</text>`:""}
-      ${lone(161,33,2,"vertical")}${lone(190,104,3,"vertical")}
+      ${loneAround("aspOD1",170,52,["upper-left","upper-right"])}${loneAround("aspOD2",174,118,["right","lower-right","bottom"])}
       </g><g class="residue-structure his-structure" transform="translate(39 73) scale(1.7)">
       <text class="residue-title" x="270" y="36">His57</text>
       <path class="bond" d="M284 113L315 83L356 94L366 134L330 154L294 137Z"/><path class="bond double" d="M318 87L350 98"/><path class="bond double" d="M360 130L332 148"/>
       ${atom("hisND1",289,112,"N","nitrogen","His57 Nδ1|Nitrogen|0|2|1|Triad hydrogen-bond donor")}
       ${atom("hisN",364,134,hisPlus?"N⁺":"N","nitrogen","His57 Nε2|Nitrogen|"+(hisPlus?"+1":"0")+"|"+(hisPlus?"3":"2")+"|"+(hisPlus?"0":"1")+"|"+(hisPlus?"General acid":"General base"))}
       ${chemical?`<text class="atom-label" x="258" y="111">Nδ1</text><text class="atom-label" x="374" y="155">Nε2</text>`:""}
-      ${hisPlus?`<path class="bond" d="M376 142L397 158"/>${atom("proton",405,164,"H*","hydrogen","Transferred proton H*|Hydrogen|+1 modeled|1|0|Proton relay")}`:lone(378,124,1)}
+      ${hisPlus?`<path class="bond" d="M376 142L397 158"/>${atom("proton",405,164,"H*","hydrogen","Transferred proton H*|Hydrogen|+1 modeled|1|0|Proton relay")}`:loneAround("hisN",364,134,["right"])}
       ${!hisPlus?`<path class="bond" d="M284 101L272 82"/><text class="hydrogen-label" x="258" y="79">H</text>`:""}
       </g><g class="residue-structure ser-structure" transform="translate(-100 73) scale(1.7)">
       <text class="residue-title" x="430" y="36">Ser195</text>
@@ -338,17 +341,17 @@
       ${atom("serO",550,108,serMinus?"O⁻":"O","ser-oxygen","Ser195 Oγ|Oxygen|"+(serMinus?"−1":"0")+"|"+(covalent?"2":serMinus?"1":"2")+"|"+(serMinus?"3":"2")+"|"+(covalent?"Acyl bond":"Catalytic nucleophile"))}
       ${chemical?`<text class="atom-label" x="538" y="82">Oγ</text>`:""}
       ${!serMinus && !covalent?`<path class="bond ser-oh-bond" d="M536 108L511 108"/>${atom("proton",500,108,"H*","hydrogen","Transferred proton H*|Hydrogen|0|1|0|Ser195 proton")}`:""}
-      ${lone(543,78,serMinus?3:2,"vertical")}</g></g>
+      ${loneAround("serO",550,108,serMinus?["upper-right","right","lower-right"]:["upper-right","lower-right"])}</g></g>
       <g id="hydrogen-bonds-layer" class="hydrogen-bonds-layer"><path class="hbond asp-his-hbond" d="M322 274L530 263"/><path class="hbond his-ser-hbond" d="M658 301L750 257"/></g>
       ${bound ? `<g class="reaction-fragment ${state.isolate&&mode==="acyl"?"dimmed":""}" transform="translate(290 0)"><path class="bond substrate" d="M486 217L586 247"/><path class="bond p1-sidechain" d="M524 229L500 188"/><path class="aromatic-ring" d="M500 188L471 171L442 188L442 222L471 239L500 222Z"/><text class="fragment-label" x="427" y="158">aromatic P1 side chain</text>
         ${atom("carbonylC",610,252,"C","carbon","Carbonyl carbon|Carbon|0|"+(tetra?"4":"3")+"|0|"+(tetra?"tetrahedral; sp³":"electrophile; trigonal planar; sp²"))}
-        ${atom("carbonylO",610,170,tetra?"O⁻":"O","oxygen","Carbonyl oxygen|Oxygen|"+(tetra?"−1":"0")+"|"+(tetra?"1":"2")+"|"+(tetra?"3":"2")+"|"+(tetra?"Oxyanion":"Carbonyl oxygen"))}
+        ${atom("carbonylO",610,170,tetra?"O⁻":"O","oxygen","Carbonyl oxygen|Oxygen|"+(tetra?"−1":"0")+"|"+(tetra?"1":"2")+"|"+(tetra?"3":"2")+"|"+(tetra?"Oxyanion":"Carbonyl oxygen"))}${loneAround("carbonylO",610,170,tetra?["upper-left","top","upper-right"]:["upper-left","upper-right"])}
         <path class="bond ${carbonylDouble?"double":""}" d="M610 235L610 187"/>
         ${peptideAttached?`<path class="bond scissile ${mode==="collapse"?"breaking":""}" d="M627 252L674 252"/>${atom("peptideN",691,252,mode==="collapse"?"NH₂":"NH","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|"+(mode==="collapse"?"Amine-side product":"Leaving group"))}<text class="fragment-label" x="713" y="257">–R_N</text><text class="bond-label" x="642" y="281">scissile peptide bond</text>`:""}
-        ${covalent?`<path class="bond covalent ${mode==="attack"?"forming":""}" d="M550 240L599 240"/><text class="bond-label" x="548" y="218">Ser Oγ–C</text>`:`<path class="attack-geometry" d="M550 240L600 239"/>`}
+        ${covalent?`<path class="bond covalent ${mode==="attack"?"forming":""}" d="M550 240L599 240"/><text class="bond-label acyl-bond-label" x="548" y="218">Ser Oγ–C</text>`:`<path class="attack-geometry" d="M550 240L600 239"/>`}
         </g>` : ""}
       ${tetra?`<g id="hydrogen-bonds-layer-extra" class="hydrogen-bonds-layer oxyanion-focus" transform="translate(290 0)"><text class="oxyanion-note" x="610" y="36" text-anchor="middle">Two backbone N–H groups stabilize the negatively charged oxyanion</text><text class="donor" x="505" y="82">Gly193 backbone N–H</text><text class="donor" x="650" y="82">Ser195 backbone N–H</text><path class="donor-bond" d="M548 92L575 116"/><path class="donor-bond" d="M680 92L650 116"/><path class="hbond" d="M575 116L610 154"/><path class="hbond" d="M650 116L610 154"/></g>`:""}
-      ${water?`<g class="water-entry" transform="translate(290 0)">${atom("waterO",505,414,mode==="water"?"O⁻":"OH","water-oxygen","Water oxygen|Oxygen|"+(mode==="water"?"−1":"0")+"|"+(mode==="water"?"1":"2")+"|"+(mode==="water"?"3":"2")+"|Water-derived nucleophile")}<path class="bond water-bond" d="M505 397L505 375"/><text class="fragment-label" x="480" y="365">${mode==="water"?"activated H–O:":"water-derived OH"}</text>${["waterattack","tetrahedral2"].includes(mode)?`<path class="bond forming" d="M516 402L600 266"/>`:""}</g>`:""}
+      ${water?`<g class="water-entry" transform="translate(290 0)">${atom("waterO",505,414,mode==="water"?"O⁻":"OH","water-oxygen","Water oxygen|Oxygen|"+(mode==="water"?"−1":"0")+"|"+(mode==="water"?"1":"2")+"|"+(mode==="water"?"3":"2")+"|Water-derived nucleophile")}${loneAround("waterO",505,414,mode==="water"?["left","lower-left","lower-right"]:["lower-left","lower-right"])}<path class="bond water-bond" d="M505 397L505 375"/><text class="fragment-label" x="480" y="365">${mode==="water"?"activated H–O:":"water-derived OH"}</text>${["waterattack","tetrahedral2"].includes(mode)?`<path class="bond forming" d="M516 402L600 266"/>`:""}</g>`:""}
       ${product?`<g class="departing-fragment" transform="translate(290 0)">${mode==="collapse"?`${atom("peptideN",618,414,"NH₂","nitrogen","Peptide nitrogen|Nitrogen|0|3|1|Amine-side product")}<text class="fragment-label" x="643" y="420">–R_N · amine peptide fragment departing</text>`:`<text class="fragment-label" x="536" y="430">R_C–C(=O)O(H) · carboxyl peptide fragment departing</text>`}</g>`:""}
       <g id="electron-arrows-layer" class="electron-arrows-layer">${arrows.join("")}</g>
       ${state.comparison?`<g class="comparison-inset"><text x="34" y="405">Planar carbonyl: sp², C=O</text><path d="M55 455L105 425M55 455L105 485M55 455L15 455"/><text x="34" y="515">Tetrahedral: sp³, four σ bonds</text></g>`:""}
@@ -362,11 +365,34 @@
     $("chemistry-svg").classList.toggle("isolate", state.isolate);
     $("chemistry-svg").classList.toggle("playing", state.playing);
     $("chemistry-svg").classList.toggle("tetrahedral-emphasis", tetra);
+    $("chemistry-svg").classList.toggle("reaction-focus", state.reactionFocus);
     $("chemistry-svg").dataset.bonds = mode;
     $("oxyanionCaption").hidden = !tetra && structureViewState.mode !== "oxyanion-hole";
     $("chemistry-svg").dataset.strategies = [...document.querySelectorAll("[data-strategy]:checked")].map(node => node.dataset.strategy).join(" ");
     document.querySelectorAll(".atom-node").forEach(node => node.addEventListener("click", () => inspectAtom(node)));
     updateToggles();
+    requestAnimationFrame(resolveAnnotationCollisions);
+  }
+
+  function resolveAnnotationCollisions() {
+    const svg = $("chemistry-svg");
+    if (!svg) return;
+    const blockers = [...svg.querySelectorAll(".lone-pair,.formal-charge")].map(node => node.getBoundingClientRect());
+    const placed = [...blockers];
+    const labels = [...svg.querySelectorAll(".atom-label,.residue-title,.fragment-label,.bond-label,.contour-label,.backbone-label")];
+    const overlaps = (a,b) => a.left < b.right + 3 && a.right + 3 > b.left && a.top < b.bottom + 3 && a.bottom + 3 > b.top;
+    labels.forEach(label => {
+      label.style.display = "";
+      label.removeAttribute("transform");
+      let accepted = false;
+      for (const dy of [0,-18,18,-34,34]) {
+        label.setAttribute("transform", `translate(0 ${dy})`);
+        const rect = label.getBoundingClientRect();
+        if (!placed.some(other => overlaps(rect,other))) { placed.push(rect); accepted = true; break; }
+      }
+      if (!accepted && label.matches(".fragment-label,.bond-label,.contour-label")) label.style.display = "none";
+      else if (!accepted) placed.push(label.getBoundingClientRect());
+    });
   }
 
   function inspectAtom(node) {
@@ -410,20 +436,29 @@
   }
 
   function drawEnergy() {
-    const width = 1100, left = 54, right = 34, bottom = 184, top = 22;
-    const x = i => left + i * ((width - left - right) / (stages.length - 1)), y = value => bottom - value * (bottom - top);
-    const values = $("energyDetailToggle")?.checked ? [.12,.2,.78,.42,.72,.52,.28,.42,.76,.5,.65,.08] : [.12,.18,.62,.45,.52,.42,.28,.42,.64,.48,.52,.08];
-    const path = values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
-    const labels = ["ES","TS1","Tetrahedral I","TS2","Acyl–enzyme","TS3","Tetrahedral II","TS4","E + products"];
-    $("energySvg").innerHTML = `<line class="energy-baseline" x1="${left}" y1="${bottom}" x2="${width-right}" y2="${bottom}"/>
-      <text class="energy-label" x="8" y="30">Higher</text><text class="energy-label" x="8" y="${bottom}">Lower</text>
+    const width = 1100, bottom = 184, top = 24;
+    const xPositions = [55,125,205,275,360,450,535,615,700,785,875,1045];
+    const values = [.12,.17,.52,.84,.36,.76,.25,.48,.82,.34,.73,.08];
+    const y = value => bottom - value * (bottom - top), x = i => xPositions[i];
+    const points = xPositions.map((px,i)=>[px,y(values[i])]);
+    const path = points.reduce((d,p,i)=>{
+      if (!i) return `M${p[0]} ${p[1]}`;
+      const prev=points[i-1], mid=(prev[0]+p[0])/2;
+      return `${d} C${mid} ${prev[1]},${mid} ${p[1]},${p[0]} ${p[1]}`;
+    },"");
+    const features = [
+      [55,"Reactants"],[275,"TS1 · nucleophilic attack"],[360,"TI1"],[450,"TS2 · first collapse"],
+      [535,"Acyl enzyme"],[700,"TS3 · water attack"],[785,"TI2"],[875,"TS4 · second collapse"],[1045,"Products"]
+    ];
+    $("energySvg").innerHTML = `<line class="energy-baseline" x1="55" y1="${bottom}" x2="1045" y2="${bottom}"/>
+      <text class="energy-disclaimer" x="550" y="18" text-anchor="middle">Schematic free-energy profile — relative energies are qualitative.</text>
+      <text class="energy-label" x="8" y="38">Higher</text><text class="energy-label" x="8" y="${bottom}">Lower</text>
       <path class="energy-path" d="${path}"/>
-      <path class="current-guide" d="M${x(state.stage)} 20V${bottom}"/>
-      ${stages.map((s, i) => `<g data-energy-stage="${i}"><circle class="energy-point${i === state.stage ? " active" : ""}" cx="${x(i)}" cy="${y(values[i])}" r="8"/><text class="energy-label" x="${x(i)}" y="214" text-anchor="middle">${i + 1}</text></g>`).join("")}
-      <path class="phase-bracket" d="M${left} 198H${x(6)}"/><text class="energy-label" x="${(left+x(6))/2}" y="197" text-anchor="middle">Acylation</text>
-      <path class="phase-bracket" d="M${x(6)} 198H${width-right}"/><text class="energy-label" x="${(x(6)+width-right)/2}" y="197" text-anchor="middle">Deacylation</text>
-      ${$("energyDetailToggle")?.checked?labels.map((l,i)=>`<text class="barrier-label" x="${left+i*(width-left-right)/(labels.length-1)}" y="${i%2?42:65}" text-anchor="middle">${l}</text>`).join(""):""}
-      <text class="energy-label" x="${width / 2}" y="232" text-anchor="middle">Reaction progress</text>`;
+      <path class="current-guide" d="M${x(state.stage)} 25V${bottom}"/>
+      ${stages.map((s, i) => `<g data-energy-stage="${i}"><circle class="energy-point${i === state.stage ? " active" : ""}" cx="${x(i)}" cy="${y(values[i])}" r="${i===state.stage?10:5}"/><text class="energy-stage-name${i===state.stage?" active":""}" x="${x(i)}" y="218" text-anchor="middle">${i + 1}</text></g>`).join("")}
+      ${features.map(([fx,label],i)=>`<text class="barrier-label" x="${fx}" y="${i%2?48:68}" text-anchor="middle">${label}</text>`).join("")}
+      <text class="current-energy-label" x="${x(state.stage)}" y="${Math.max(34,y(values[state.stage])-15)}" text-anchor="middle">${escapeXml(stages[state.stage].short)}</text>
+      <text class="energy-label" x="550" y="232" text-anchor="middle">Reaction progress</text>`;
     document.querySelectorAll("[data-energy-stage]").forEach(node => node.addEventListener("click", () => setStage(Number(node.dataset.energyStage))));
   }
 
@@ -453,6 +488,11 @@
     renderTimeline();
     drawEnergy();
     validateChemistry(stage);
+    if ($("structureOverlay")) {
+      $("structureOverlay").dataset.stage = state.stage;
+      $("structureOverlay").dataset.bonds = stage.bonds;
+      $("structureOverlay").classList.toggle("playing", state.playing);
+    }
     $("playbackStatus").textContent = `${state.playing ? "Playing" : "Paused at"} step ${state.stage + 1}: ${stage.short}`;
     // Playback keeps one experimentally loaded active-site scaffold and one camera.
     // Alternate structures are loaded only when the user explicitly chooses one.
@@ -553,11 +593,12 @@
     $("playBtn").addEventListener("click", play);
     $("resetBtn").addEventListener("click", () => {
       stop();
-      state.detail = "chemical"; state.track = ""; state.comparison = false; state.isolate = false; state.arrowBuilder = false; state.arrowPick = [];
+      state.detail = "chemical"; state.track = ""; state.comparison = false; state.isolate = false; state.arrowBuilder = false; state.arrowPick = []; state.reactionFocus = false;
       ["atomsToggle","labelsToggle","atomLabelsToggle","lonePairsToggle","chargesToggle","hbondsToggle","arrowsToggle","hydrogenToggle"].forEach(id => $(id).checked = true);
       document.querySelectorAll("[data-detail]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.detail === "chemical")));
       $("trackAtomSelect").value = "";
       $("comparisonBtn").setAttribute("aria-pressed", "false"); $("isolateBtn").setAttribute("aria-pressed", "false"); $("arrowBuilderBtn").setAttribute("aria-pressed", "false"); $("arrowBuilderBtn").textContent = "Build the arrows";
+      $("reactionFocusBtn").setAttribute("aria-pressed", "false");
       $("representationSelect").value = "cartoon";
       $("speedSelect").value = "3000";
       setStage(0);
@@ -596,7 +637,11 @@
     $("chemZoomInBtn").addEventListener("click", () => zoomChemistry(0.82));
     $("chemZoomOutBtn").addEventListener("click", () => zoomChemistry(1.22));
     $("chemResetBtn").addEventListener("click", resetChemistryView);
-    $("energyDetailToggle").addEventListener("change", drawEnergy);
+    $("reactionFocusBtn").addEventListener("click", () => {
+      state.reactionFocus = !state.reactionFocus;
+      $("reactionFocusBtn").setAttribute("aria-pressed", String(state.reactionFocus));
+      drawMechanism(stages[state.stage]);
+    });
     $("speedSelect").addEventListener("change", () => { if (state.playing) { stop(); play(); } });
     $("evidenceBtn").addEventListener("click", showEvidence);
     $("copyNotesBtn").addEventListener("click", copyNotes);
