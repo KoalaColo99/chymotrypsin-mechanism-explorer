@@ -6,7 +6,7 @@
   <meta name="description" content="Explore chymotrypsin structure and catalytic chemistry with experimental PDB coordinates.">
   <title>Chymotrypsin Catalytic Mechanism Explorer</title>
   <link rel="stylesheet" href="./assets/vendor/molstar/molstar.css">
-  <link rel="stylesheet" href="styles.css?v=20260721r2">
+  <link rel="stylesheet" href="styles.css?v=20260721r3">
 </head>
 <body class="app-shell">
   <header class="topbar">
@@ -49,6 +49,7 @@
           <div>
             <strong>3D structure</strong>
             <span id="structureLabel">4CHA · free enzyme</span>
+            <small>Experimental coordinates · hydrogens and reaction changes are explanatory models</small>
           </div>
           <span id="viewerLoadState" class="viewer-state">Initializing…</span>
         </div>
@@ -95,7 +96,7 @@
             <button type="button" data-detail="electron">Full electron flow</button>
           </div>
         </div>
-        <div class="chem-tools">
+        <details class="advanced-disclosure"><summary>Advanced chemistry</summary><div class="chem-tools">
           <label>Track atom
             <select id="trackAtomSelect">
               <option value="">None</option><option value="serO">Ser195 Oγ</option>
@@ -111,12 +112,7 @@
           <button id="chemZoomInBtn" class="button small" type="button">Zoom in</button>
           <button id="chemZoomOutBtn" class="button small" type="button">Zoom out</button>
           <button id="chemResetBtn" class="button small" type="button">Reset chemistry view</button>
-        </div>
-        <div class="residue-role-row">
-          <div><strong>Asp102</strong><span>Orients His57 and stabilizes charge redistribution.</span></div>
-          <div><strong>His57</strong><span>Nε2 acts as a general base; later, a general acid.</span></div>
-          <div><strong>Ser195</strong><span>Oγ becomes the catalytic nucleophile.</span></div>
-        </div>
+        </div></details>
         <div class="chemistry-canvas">
           <svg id="chemistry-svg" viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="mechanismTitle mechanismDesc">
             <g id="chemistry-root"></g>
@@ -132,10 +128,12 @@
           <span><i class="charge-symbol">−</i>formal charge</span>
         </div>
         <div id="chemistryExplanation" class="chemistry-explanation"></div>
+        <div id="stageCheckpoint" class="stage-checkpoint" role="status"></div>
+        <div class="role-notes"><span><strong>Asp102:</strong> hydrogen-bonds with His57, helping orient the imidazole ring and tune His57 for proton transfer.</span><span><strong>Ser195 side-chain Oγ:</strong> nucleophile.</span><span><strong>Ser195 backbone N–H:</strong> oxyanion-hole donor.</span></div>
       </article>
     </section>
 
-    <section class="control-deck">
+    <details class="advanced-disclosure advanced-structure"><summary>Advanced structure</summary><section class="control-deck">
       <label>Structure
         <select id="structureSelect">
           <option value="4cha">4CHA · free enzyme</option>
@@ -168,9 +166,9 @@
         <label><input id="arrowsToggle" type="checkbox" checked> Electron arrows</label>
         <label><input id="hydrogenToggle" type="checkbox" checked> Hydrogen atoms</label>
       </div>
-    </section>
+    </section></details>
 
-    <section class="strategy-deck" aria-label="Catalytic strategy overlay">
+    <details class="teaching-disclosure"><summary>Teaching extensions</summary><div><section class="strategy-deck" aria-label="Catalytic strategy overlay">
       <strong>Catalytic strategies</strong>
       <label><input type="checkbox" data-strategy="acid" checked> General acid–base</label>
       <label><input type="checkbox" data-strategy="covalent" checked> Covalent catalysis</label>
@@ -205,6 +203,7 @@
         <ul id="sourceList"></ul>
       </div>
     </details>
+    </div></details>
   </main>
   <footer class="build-footer">Chymotrypsin Mechanism Explorer · <span id="buildId">build loading…</span></footer>
 
@@ -227,6 +226,6 @@
   <script src="./assets/vendor/molstar/molstar.js"></script>
   <script src="structure-config.js"></script>
   <script src="mechanism-data.js"></script>
-  <script src="app.js?v=20260721r2"></script>
+  <script src="app.js?v=20260721r3"></script>
 </body>
 </html>
