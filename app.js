@@ -270,8 +270,17 @@
     const full = detail === "electron";
     const chemical = detail !== "conceptual";
     const tracked = key => state.track === key ? " tracked" : "";
-    const atom = (key, x, y, label, cls="carbon", info="") => `<g class="atom-node ${cls}${tracked(key)}" data-atom="${key}" data-info="${escapeXml(info)}"><circle cx="${x}" cy="${y}" r="${detail === "conceptual" ? 17 : 13}"/><text x="${x}" y="${y+5}" text-anchor="middle">${label}</text></g>`;
-    const lone = (x,y,n=2) => full ? Array.from({length:n},(_,i)=>`<text class="lone-pair" x="${x+i*12}" y="${y}">••</text>`).join("") : "";
+    const atom = (key, x, y, label, cls="carbon", info="") => {
+      const symbol = label.replace(/[⁺⁻−+*]/g, "");
+      const charge = /[⁺+]/.test(label) ? "+" : /[⁻−]/.test(label) ? "−" : "";
+      const star = label.includes("*") ? "*" : "";
+      return `<g class="atom-node ${cls}${tracked(key)}" data-atom="${key}" data-info="${escapeXml(info)}"><circle class="atom-hit" cx="${x}" cy="${y}" r="22"/><text class="atom-symbol" x="${x}" y="${y+8}" text-anchor="middle">${symbol}</text>${charge ? `<text class="formal-charge" x="${x+15}" y="${y-12}">${charge}</text>` : ""}${star ? `<text class="atom-star" x="${x+13}" y="${y-10}">*</text>` : ""}</g>`;
+    };
+    const lone = (x,y,n=1,orientation="horizontal") => chemical ? Array.from({length:n},(_,i)=>{
+      const dx = orientation === "vertical" ? 0 : i * 15;
+      const dy = orientation === "vertical" ? i * 15 : 0;
+      return `<g class="lone-pair" transform="translate(${x+dx} ${y+dy})"><circle cx="0" cy="0" r="2.5"/><circle cx="7" cy="0" r="2.5"/></g>`;
+    }).join("") : "";
     const arrows = [];
     if (full && mode === "activation") arrows.push(`<path class="electron-arrow" d="M650 252Q830 160 1035 225"/><path class="electron-arrow" d="M1038 228Q1017 204 1004 226"/>`);
     if (full && mode === "attack") arrows.push(`<path class="electron-arrow" d="M1000 250Q955 310 883 265"/><path class="electron-arrow" d="M870 235Q835 205 868 183"/>`);
@@ -284,28 +293,28 @@
         <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#10263a"/></marker>
       </defs>
       <g id="structures-layer" class="structures-layer ${state.isolate && mode==="acyl" ? "dimmed" : ""}">
-      <g class="residue-structure asp-structure" transform="translate(110 120)">
+      <g class="residue-structure asp-structure" transform="translate(26 73) scale(1.7)">
       <text class="residue-title" x="38" y="36">Asp102</text>
       <path class="bond" d="M48 108L88 108L122 82"/><path class="bond double" d="M122 79L157 57"/><path class="bond" d="M126 87L161 112"/>
       <text class="fragment" x="38" y="113">Protein–CH₂</text>${atom("aspOD1",170,52,"O","oxygen","Asp102 OD1|Oxygen|0|1|2|Carboxylate oxygen")}
       ${atom("aspOD2",174,118,"O⁻","oxygen","Asp102 OD2|Oxygen|−1|1|3|Hydrogen-bond acceptor")}${chemical?`<text class="atom-label" x="182" y="37">OD1</text><text class="atom-label" x="184" y="139">OD2</text>`:""}
-      ${lone(184,104,2)}
-      </g><g class="residue-structure his-structure" transform="translate(270 120)">
+      ${lone(161,33,2,"vertical")}${lone(190,104,3,"vertical")}
+      </g><g class="residue-structure his-structure" transform="translate(39 73) scale(1.7)">
       <text class="residue-title" x="270" y="36">His57</text>
       <path class="bond" d="M284 113L315 83L356 94L366 134L330 154L294 137Z"/><path class="bond double" d="M318 87L350 98"/><path class="bond double" d="M360 130L332 148"/>
       ${atom("hisND1",289,112,"N","nitrogen","His57 Nδ1|Nitrogen|0|2|1|Triad hydrogen-bond donor")}
       ${atom("hisN",364,134,hisPlus?"N⁺":"N","nitrogen","His57 Nε2|Nitrogen|"+(hisPlus?"+1":"0")+"|"+(hisPlus?"3":"2")+"|"+(hisPlus?"0":"1")+"|"+(hisPlus?"General acid":"General base"))}
       ${chemical?`<text class="atom-label" x="258" y="111">Nδ1</text><text class="atom-label" x="374" y="155">Nε2</text>`:""}
-      ${hisPlus?`<path class="bond" d="M376 142L397 158"/>${atom("proton",405,164,"H*","hydrogen","Transferred proton H*|Hydrogen|+1 modeled|1|0|Proton relay")}`:lone(372,119,1)}
+      ${hisPlus?`<path class="bond" d="M376 142L397 158"/>${atom("proton",405,164,"H*","hydrogen","Transferred proton H*|Hydrogen|+1 modeled|1|0|Proton relay")}`:lone(378,124,1)}
       ${!hisPlus?`<path class="bond" d="M284 101L272 82"/><text class="hydrogen-label" x="258" y="79">H</text>`:""}
-      </g><g class="residue-structure ser-structure" transform="translate(450 120)">
+      </g><g class="residue-structure ser-structure" transform="translate(86 73) scale(1.7)">
       <text class="residue-title" x="430" y="36">Ser195</text>
       <text class="fragment" x="438" y="115">Protein–CH₂</text><path class="bond" d="M505 108L537 108"/>
       ${atom("serO",550,108,serMinus?"O⁻":"O","ser-oxygen","Ser195 Oγ|Oxygen|"+(serMinus?"−1":"0")+"|"+(covalent?"2":serMinus?"1":"2")+"|"+(serMinus?"3":"2")+"|"+(covalent?"Acyl bond":"Catalytic nucleophile"))}
       ${chemical?`<text class="atom-label" x="538" y="82">Oγ</text>`:""}
       ${!serMinus && !covalent?`<path class="bond" d="M564 108L589 108"/>${atom("proton",600,108,"H*","hydrogen","Transferred proton H*|Hydrogen|0|1|0|Ser195 proton")}`:""}
-      ${lone(561,91,serMinus?3:2)}</g></g>
-      <g id="hydrogen-bonds-layer" class="hydrogen-bonds-layer"><path class="hbond" d="M301 236L546 233"/><path class="hbond" d="M648 252L1037 229"/></g>
+      ${lone(543,78,serMinus?3:2,"vertical")}</g></g>
+      <g id="hydrogen-bonds-layer" class="hydrogen-bonds-layer"><path class="hbond" d="M322 274L530 263"/><path class="hbond" d="M658 301L1021 257"/></g>
       ${bound ? `<g class="${state.isolate&&mode==="acyl"?"dimmed":""}" transform="translate(260 0)"><text class="fragment-label" x="462" y="222">R_C</text><path class="bond substrate" d="M486 217L586 247"/>
         ${atom("carbonylC",610,252,"C","carbon","Carbonyl carbon|Carbon|0|"+(tetra?"4":"3")+"|0|"+(tetra?"tetrahedral; sp³":"electrophile; trigonal planar; sp²"))}
         ${atom("carbonylO",610,170,tetra?"O⁻":"O","oxygen","Carbonyl oxygen|Oxygen|"+(tetra?"−1":"0")+"|"+(tetra?"1":"2")+"|"+(tetra?"3":"2")+"|"+(tetra?"Oxyanion":"Carbonyl oxygen"))}
@@ -319,7 +328,7 @@
       <g id="electron-arrows-layer" class="electron-arrows-layer">${arrows.join("")}</g>
       ${state.comparison?`<g class="comparison-inset"><text x="34" y="405">Planar carbonyl: sp², C=O</text><path d="M55 455L105 425M55 455L105 485M55 455L15 455"/><text x="34" y="515">Tetrahedral: sp³, four σ bonds</text></g>`:""}
       `;
-    $("chemistryExplanation").textContent = stage.chemistry;
+    $("chemistryExplanation").innerHTML = `<span class="explanation-icon" aria-hidden="true">i</span><div><strong>What’s happening?</strong><p>${escapeXml(stage.chemistry)}</p></div>`;
     $("chemistry-svg").classList.toggle("isolate", state.isolate);
     $("chemistry-svg").dataset.strategies = [...document.querySelectorAll("[data-strategy]:checked")].map(node => node.dataset.strategy).join(" ");
     document.querySelectorAll(".atom-node").forEach(node => node.addEventListener("click", () => inspectAtom(node)));
