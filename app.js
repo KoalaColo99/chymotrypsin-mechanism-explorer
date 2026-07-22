@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const BUILD_ID = "2026.07.21-r7";
+  const BUILD_ID = "2026.07.22-r8";
   const stageCheckpoints = [
     "Ser195 is neutral; His57 is positioned to accept its proton.",
     "The specificity pocket positions the scissile carbonyl beside Ser195.",
@@ -49,10 +49,10 @@
     mode: "focus-active-site", focusedResidues: window.ACTIVE_SITE_RESIDUES, showSurface: false, proteinOpacity: .28
   };
   const structureModes = {
-    "focus-active-site": { residues: window.ACTIVE_SITE_RESIDUES, status: "Viewing active site: residues within the catalytic pocket", radius: 9 },
-    "catalytic-triad": { residues: [{name:"HIS",number:57,chainGroup:"hisAsp"},{name:"ASP",number:102,chainGroup:"hisAsp"},{name:"SER",number:195,chainGroup:"serPocket"}], status: "Viewing catalytic triad: Asp102, His57, Ser195", radius: 6 },
-    "oxyanion-hole": { residues: [{name:"GLY",number:193,chainGroup:"serPocket"},{name:"SER",number:195,chainGroup:"serPocket"}], status: "Viewing oxyanion hole: Gly193 and Ser195 backbone", radius: 5 },
-    "specificity-pocket": { residues: [{name:"SER",number:189,chainGroup:"serPocket"},{name:"GLY",number:216,chainGroup:"serPocket"},{name:"GLY",number:226,chainGroup:"serPocket"}], status: "Viewing S1 specificity pocket: Ser189, Gly216, Gly226", radius: 7 }
+    "focus-active-site": { residues: window.ACTIVE_SITE_RESIDUES, status: "Viewing active site: residues within the catalytic pocket", minRadius: 4, extraRadius: 2.5 },
+    "catalytic-triad": { residues: [{name:"HIS",number:57,chainGroup:"hisAsp"},{name:"ASP",number:102,chainGroup:"hisAsp"},{name:"SER",number:195,chainGroup:"serPocket"}], status: "Viewing catalytic triad: Asp102, His57, Ser195", minRadius: 3.5, extraRadius: 2 },
+    "oxyanion-hole": { residues: [{name:"GLY",number:193,chainGroup:"serPocket"},{name:"SER",number:195,chainGroup:"serPocket"}], status: "Viewing oxyanion hole: Gly193 and Ser195 backbone", minRadius: 3, extraRadius: 1.5 },
+    "specificity-pocket": { residues: [{name:"SER",number:189,chainGroup:"serPocket"},{name:"GLY",number:216,chainGroup:"serPocket"},{name:"GLY",number:226,chainGroup:"serPocket"}], status: "Viewing S1 specificity pocket: Ser189, Gly216, Gly226", minRadius: 4, extraRadius: 2 }
   };
   const structureModeButtons = {
     "whole-protein":"wholeProteinBtn", "reset-orientation":"orientationBtn",
@@ -208,7 +208,7 @@
       const elements = selectionSchema(definition.residues, structures[state.structure]);
       state.viewer.plugin?.managers?.interactivity?.lociSelects?.deselectAll?.();
       await state.viewer.structureInteractivity({ elements, action: "select" });
-      await state.viewer.structureInteractivity({ elements, action: "focus", focusOptions: { minRadius: definition.radius, extraRadius: definition.radius, durationMs: 500 } });
+      await state.viewer.structureInteractivity({ elements, action: "focus", focusOptions: { minRadius: definition.minRadius, extraRadius: definition.extraRadius, durationMs: 500 } });
     } catch (error) {
       $("viewerLoadState").textContent = error.message;
       console.warn("Structure view update failed", mode, error);
@@ -222,7 +222,7 @@
     const elements = activeSiteExpression(structures[state.structure]);
     try {
       if (elements) {
-        await state.viewer.structureInteractivity({ elements, action: "focus", focusOptions: { minRadius: 7, extraRadius: 5, durationMs: 450 } });
+        await state.viewer.structureInteractivity({ elements, action: "focus", focusOptions: { minRadius: 4, extraRadius: 2.5, durationMs: 450 } });
       } else {
         state.viewer.plugin.managers.camera.reset(undefined, 450);
       }
@@ -405,14 +405,14 @@
     const atom = (key,x,y,symbol,charge="",atomId="",info="") => `<g class="atom-node template-atom" data-atom="${key}" data-info="${escapeXml(info)}" transform="translate(${x} ${y})"><circle class="atom-hit" r="19"/><text class="atom-symbol" text-anchor="middle" y="7">${symbol}</text>${charge?`<text class="formal-charge" x="13" y="-12">${charge}</text>`:""}${atomId?`<text class="atom-id" x="0" y="27" text-anchor="middle">${atomId}</text>`:""}</g>`;
     const pairs = (owner,x,y,angles,count) => angles.slice(0,count).map(angle=>`<g class="lone-pair template-pair" data-owner="${owner}" transform="translate(${x} ${y}) rotate(${angle})"><circle cx="10" cy="-2.6" r="2.1"/><circle cx="10" cy="2.6" r="2.1"/></g>`).join("");
     const residue = (name,x,y) => `<text class="template-residue" x="${x}" y="${y}">${name}</text>`;
-    const aromaticP1 = () => `<g class="template aromatic-p1">${bond(735,217,763,201)}${bond(763,201,791,217)}${bond(791,217,791,249)}${bond(791,249,763,265)}${bond(763,265,735,249)}${bond(735,249,735,217)}<path class="ring-inner" d="M742 220L762 209M784 220L784 244M761 257L742 247"/>${bond(791,249,815,263)}<text class="template-residue" x="742" y="189">P1 aromatic side chain</text></g>`;
+    const aromaticP1 = () => `<g class="template aromatic-p1">${bond(748,128,776,112)}${bond(776,112,804,128)}${bond(804,128,804,160)}${bond(804,160,776,176)}${bond(776,176,748,160)}${bond(748,160,748,128)}<path class="ring-inner" d="M755 131L775 120M797 131L797 155M774 168L755 158"/>${bond(776,176,815,244)}<text class="template-residue" x="725" y="96">P1 aromatic side chain</text></g>`;
     const asp102 = () => `<g class="template asp-template">${residue("Asp102",118,174)}${bond(120,250,163,250)}${bond(163,250,198,222)}${doubleBond(198,222,239,190,"asp-carbonyl")}${bond(198,222,241,255)}${atom("aspOD1",251,181,"O","","OD1","Asp102 OD1|Oxygen|0|2|2|Carboxylate oxygen")}${pairs("aspOD1",251,181,[-70,20],2)}${atom("aspOD2",253,263,"O","−","OD2","Asp102 OD2|Oxygen|−1|1|3|Hydrogen-bond acceptor")}${pairs("aspOD2",253,263,[-50,20,90],3)}</g>`;
     const his57 = ({protonated=false}={}) => `<g class="template his-template">${residue("His57",390,174)}${bond(392,240,420,207)}${bond(420,207,461,218)}${bond(461,218,470,260)}${bond(470,260,433,282)}${bond(433,282,399,260)}${bond(399,260,392,240)}<path class="ring-inner" d="M422 216L451 224M461 255L438 270"/>${atom("hisND1",394,240,"N","","Nδ1","His57 Nδ1|Nitrogen|0|3|1|Hydrogen-bonded imidazole nitrogen")}${atom("hisN",470,260,"N",protonated?"+":"","Nε2",`His57 Nε2|Nitrogen|${protonated?"+1":"0"}|${protonated?"3":"2"}|${protonated?"0":"1"}|General acid–base catalyst`)}${protonated?`${bond(482,271,501,291)}${atom("proton",510,301,"H","","H*","Transferred proton|Hydrogen|+1 modeled|1|0|Proton relay")}`:pairs("hisN",470,260,[0],1)}${bond(391,229,378,207)}<text class="hydrogen-label" x="368" y="201">H</text></g>`;
     const ser195 = ({alkoxide=false,proton=true}={}) => `<g class="template ser-template">${residue("Ser195",620,174)}${bond(620,250,692,250)}${atom("serO",716,250,"O",alkoxide?"−":"","Oγ",`Ser195 Oγ|Oxygen|${alkoxide?"−1":"0"}|${alkoxide?"1":"2"}|${alkoxide?"3":"2"}|Catalytic nucleophile`)}${pairs("serO",716,250,[-60,55,180],alkoxide?3:2)}${proton?`${bond(732,250,751,250)}${atom("serH",768,250,"H","","H*","Ser195 proton|Hydrogen|0|1|0|Transferred proton")}`:""}</g>`;
     const peptideBackbone = ({leaving=false}={}) => `<g class="template peptide-backbone">${bond(815,263,850,283)}${bond(850,283,884,263)}${leaving?"":`${bond(900,263,935,263)}${atom("peptideN",955,263,"N","","N","Peptide nitrogen|Nitrogen|0|3|1|Scissile peptide nitrogen")}${pairs("peptideN",955,263,[-55],1)}${bond(974,263,1012,263)}${bond(1012,263,1036,282)}`}</g>`;
     const peptideCarbonyl = ({reduced=false,charge="",leaving=false,product=false}={}) => `<g class="template carbonyl-template">${atom("alphaC",815,263,"C","","Cα","P1 alpha carbon|Carbon|0|4|0|Peptide backbone")}${atom("carbonylC",884,263,"C","","C′",`Carbonyl carbon|Carbon|0|${reduced?"4":"3"}|0|${reduced?"Tetrahedral center":"Planar carbonyl"}`)}${reduced?bond(884,244,884,194,"carbonyl-single"):doubleBond(884,244,884,194,"peptide-carbonyl")}${atom("carbonylO",884,175,"O",charge,"O",`Carbonyl oxygen|Oxygen|${charge||"0"}|${reduced?"1":"2"}|${reduced?"3":"2"}|${reduced?"Oxyanion":"Carbonyl oxygen"}`)}${pairs("carbonylO",884,175,[-120,-60,0],reduced?3:2)}${product?`${bond(900,263,934,263)}${atom("productOH",955,263,"O","","OH","Carboxyl product hydroxyl|Oxygen|0|2|2|Hydrolysis product")}${pairs("productOH",955,263,[-55,55],2)}${bond(973,263,992,247)}${atom("productH",1005,237,"H","","","Product proton|Hydrogen|0|1|0|Carboxylic acid proton")}`:peptideBackbone({leaving})}</g>`;
     const tetrahedralCarbon = ({second=false,leaving=false}={}) => `<g class="template tetrahedral-template ${second?"ti2":"ti1"}">${atom("alphaC",815,263,"C","","Cα","P1 alpha carbon|Carbon|0|4|0|Peptide backbone")}${atom("carbonylC",884,263,"C","","C*","Tetrahedral carbon|Carbon|0|4|0|sp3 approximately 109.5 degrees")}${bond(884,244,884,194,"tetrahedral-bond")}${atom("carbonylO",884,175,"O","−","O","Oxyanion|Oxygen|−1|1|3|Oxyanion-hole acceptor")}${pairs("carbonylO",884,175,[-120,-60,0],3)}${bond(868,273,732,253,"tetrahedral-bond")}${bond(900,273,934,299,"tetrahedral-bond")}${second?`${atom("waterO",950,310,"O","","Ow","Water-derived oxygen|Oxygen|0|2|2|Hydrolytic oxygen")}${pairs("waterO",950,310,[-45,45],2)}`:""}${peptideBackbone({leaving})}</g>`;
-    const water = ({activated=false}={}) => `<g class="template water-template">${atom("waterO",720,382,"O",activated?"−":"","Ow",`Water oxygen|Oxygen|${activated?"−1":"0"}|${activated?"1":"2"}|${activated?"3":"2"}|Hydrolytic nucleophile`)}${pairs("waterO",720,382,[-120,-60,60],activated?3:2)}${bond(704,390,685,404)}${atom("waterH1",672,414,"H","","","Water hydrogen|Hydrogen|0|1|0|Water proton")}${activated?"":`${bond(736,390,755,404)}${atom("waterH2",768,414,"H","","","Water hydrogen|Hydrogen|0|1|0|Water proton")}`}</g>`;
+    const water = ({activated=false}={}) => `<g class="template water-template">${atom("waterO",720,350,"O",activated?"−":"","Ow",`Water oxygen|Oxygen|${activated?"−1":"0"}|${activated?"1":"2"}|${activated?"3":"2"}|Hydrolytic nucleophile`)}${pairs("waterO",720,350,[-120,-60,60],activated?3:2)}${bond(704,358,685,372)}${atom("waterH1",672,382,"H","","","Water hydrogen|Hydrogen|0|1|0|Water proton")}${activated?"":`${bond(736,358,755,372)}${atom("waterH2",768,382,"H","","","Water hydrogen|Hydrogen|0|1|0|Water proton")}`}</g>`;
     return { bond,doubleBond,atom,pairs,aromaticP1,asp102,his57,ser195,peptideCarbonyl,tetrahedralCarbon,water };
   })();
 
@@ -442,7 +442,7 @@
     const caption=mode==='tetrahedral'?"First tetrahedral intermediate (TI1): fixed sp³ template (≈109.5°); the oxyanion is stabilized by two backbone N–H donors.":mode==='tetrahedral2'?"Second tetrahedral intermediate (TI2): fixed sp³ template (≈109.5°); water-derived oxygen is incorporated before collapse.":stageCheckpoints[state.stage];
     $("stageCheckpoint").textContent=caption;
     $("chemistryExplanation").innerHTML=`<span class="explanation-icon" aria-hidden="true">i</span><div><strong>What’s happening?</strong><p>${escapeXml(stage.chemistry)}</p></div>`;
-    const svg=$("chemistry-svg");svg.setAttribute("viewBox","70 70 1040 390");svg.dataset.bonds=mode;
+    const svg=$("chemistry-svg");svg.setAttribute("viewBox","90 72 980 340");svg.dataset.bonds=mode;
     svg.classList.toggle("full-electron",state.detail==='electron');svg.classList.toggle("reaction-focus",state.reactionFocus);svg.classList.toggle("tetrahedral-emphasis",tetra);
     $("oxyanionCaption").hidden=!tetra&&structureViewState.mode!=="oxyanion-hole";
     document.querySelectorAll(".atom-node").forEach(node=>node.addEventListener("click",()=>inspectAtom(node)));

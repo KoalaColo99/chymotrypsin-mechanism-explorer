@@ -117,3 +117,12 @@ main{max-width:1840px;padding:16px 18px 24px}
 #chemistry-svg .canonical-mechanism .substrate-template,#chemistry-svg .canonical-mechanism .water-state{transition:opacity .35s ease}
 #chemistry-svg .canonical-mechanism .tetrahedral-bond{stroke-width:3}
 #chemistry-svg .canonical-mechanism .template-atom.tracked .atom-hit{fill:rgba(240,172,41,.18);stroke:#d08a10;stroke-width:2}
+
+/* r8 clarity pass */
+#chemistry-svg .canonical-mechanism .bond,#chemistry-svg .canonical-double-bond path{stroke-width:3.2}
+#chemistry-svg .canonical-double-bond path{stroke-width:2.65}
+#chemistry-svg .canonical-mechanism .atom-symbol{font-size:28px;stroke-width:6px}
+#chemistry-svg .canonical-mechanism .atom-id{font-size:11px}
+#chemistry-svg .canonical-mechanism .template-residue{font-size:16px}
+#chemistry-svg .canonical-mechanism .lone-pair circle{r:2.35px}
+.structure-overlay text{font-size:11px;stroke-width:3px}.structure-overlay .modeled-path{stroke-width:2}.modeled-substrate path,.modeled-product path{stroke-width:5}
