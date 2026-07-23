@@ -126,3 +126,20 @@ main{max-width:1840px;padding:16px 18px 24px}
 #chemistry-svg .canonical-mechanism .template-residue{font-size:16px}
 #chemistry-svg .canonical-mechanism .lone-pair circle{r:2.35px}
 .structure-overlay text{font-size:11px;stroke-width:3px}.structure-overlay .modeled-path{stroke-width:2}.modeled-substrate path,.modeled-product path{stroke-width:5}
+
+/* r9 catalytic orientation and proton-shuttle story */
+#chemistry-svg .his-ser-contact{stroke:#2c69c9;stroke-dasharray:6 6}
+#chemistry-svg .proton-bond{stroke-width:2.8}
+#chemistry-svg .his-role text{font-size:12px;font-weight:700;letter-spacing:.025em;paint-order:stroke;stroke:#fff;stroke-width:4px}
+#chemistry-svg .his-role.base text:first-child{fill:#185f8b}
+#chemistry-svg .his-role.acid text:first-child{fill:#8b3f25}
+#chemistry-svg .his-role text:last-child{font-size:10px;font-weight:600;fill:#5d6671}
+#chemistry-svg.playing .proton-shuttle.ser-to-his{animation:ser-to-his .9s ease-in-out both}
+#chemistry-svg.playing .proton-shuttle.water-to-his{animation:water-to-his .9s ease-in-out both}
+#chemistry-svg.playing .proton-shuttle.his-to-leaving{animation:his-to-leaving 1.05s ease-in-out both}
+#chemistry-svg.playing .proton-shuttle.his-to-ser{animation:his-to-ser .9s ease-in-out both}
+@keyframes ser-to-his{from{transform:translate(145px,-10px)}to{transform:translate(0,0)}}
+@keyframes water-to-his{from{transform:translate(154px,122px)}to{transform:translate(0,0)}}
+@keyframes his-to-leaving{from{transform:translate(-392px,20px)}to{transform:translate(0,0)}}
+@keyframes his-to-ser{from{transform:translate(-145px,10px)}to{transform:translate(0,0)}}
+@media(prefers-reduced-motion:reduce){#chemistry-svg.playing .proton-shuttle{animation:none!important}}

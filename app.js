@@ -1,19 +1,19 @@
 (() => {
   "use strict";
-  const BUILD_ID = "2026.07.22-r8";
+  const BUILD_ID = "2026.07.23-r9";
   const stageCheckpoints = [
-    "Ser195 is neutral; His57 is positioned to accept its proton.",
-    "The specificity pocket positions the scissile carbonyl beside Ser195.",
-    "His57 removes the Ser195 proton, producing Ser–O⁻ and protonated His57.",
-    "Ser195 O⁻ attacks the carbonyl carbon; the π electrons move to oxygen.",
-    "The substrate oxyanion is stabilized by two backbone N–H groups.",
-    "The peptide C–N bond breaks, and His57 protonates the leaving group.",
-    "One product has left; the remaining acyl group is covalently attached to Ser195.",
-    "His57 removes a proton from water, generating the attacking nucleophile.",
-    "Water-derived oxygen attacks the acyl-enzyme carbonyl.",
-    "A second substrate-derived oxyanion is stabilized in the oxyanion hole.",
-    "The Ser195–acyl bond breaks, restoring the Ser195 hydroxyl.",
-    "The second product leaves, and the catalytic triad is ready for another cycle."
+    "Asp102 organizes His57; His57 Nε2 faces the Ser195 O–H proton.",
+    "The aromatic P1 group binds while the scissile carbonyl is positioned beside Ser195.",
+    "GENERAL BASE: His57 Nε2 accepts the Ser195 proton, producing the Ser195 alkoxide.",
+    "The Ser195 alkoxide attacks carbonyl C; C=O π electrons move to substrate oxygen.",
+    "TI1: substrate-derived O⁻ is stabilized by Gly193 and Ser195 backbone N–H donors.",
+    "GENERAL ACID: His57 protonates the leaving amine as the peptide C–N bond breaks.",
+    "Acyl-enzyme pause: one product has left; the acyl fragment remains ester-linked to Ser195.",
+    "GENERAL BASE: His57 removes a water proton, creating the water-derived nucleophile.",
+    "Water-derived oxygen attacks the acyl carbonyl; C=O becomes C–O⁻.",
+    "TI2: the second substrate-derived oxyanion is stabilized by the same oxyanion hole.",
+    "GENERAL ACID: His57 returns H⁺ to Ser195 as the Ser–O–acyl bond breaks.",
+    "Products leave; Ser195–OH and the catalytic triad are regenerated."
   ];
   const timelineLabels = ["Resting triad","Bind substrate","Activate Ser","Attack (TS1)","Tetrahedral I","First collapse (TS2)","Acyl–enzyme","Activate water","Water attack (TS3)","Tetrahedral II","Regenerate (TS4)","Product release"];
 
@@ -407,8 +407,8 @@
     const residue = (name,x,y) => `<text class="template-residue" x="${x}" y="${y}">${name}</text>`;
     const aromaticP1 = () => `<g class="template aromatic-p1">${bond(748,128,776,112)}${bond(776,112,804,128)}${bond(804,128,804,160)}${bond(804,160,776,176)}${bond(776,176,748,160)}${bond(748,160,748,128)}<path class="ring-inner" d="M755 131L775 120M797 131L797 155M774 168L755 158"/>${bond(776,176,815,244)}<text class="template-residue" x="725" y="96">P1 aromatic side chain</text></g>`;
     const asp102 = () => `<g class="template asp-template">${residue("Asp102",118,174)}${bond(120,250,163,250)}${bond(163,250,198,222)}${doubleBond(198,222,239,190,"asp-carbonyl")}${bond(198,222,241,255)}${atom("aspOD1",251,181,"O","","OD1","Asp102 OD1|Oxygen|0|2|2|Carboxylate oxygen")}${pairs("aspOD1",251,181,[-70,20],2)}${atom("aspOD2",253,263,"O","−","OD2","Asp102 OD2|Oxygen|−1|1|3|Hydrogen-bond acceptor")}${pairs("aspOD2",253,263,[-50,20,90],3)}</g>`;
-    const his57 = ({protonated=false}={}) => `<g class="template his-template">${residue("His57",390,174)}${bond(392,240,420,207)}${bond(420,207,461,218)}${bond(461,218,470,260)}${bond(470,260,433,282)}${bond(433,282,399,260)}${bond(399,260,392,240)}<path class="ring-inner" d="M422 216L451 224M461 255L438 270"/>${atom("hisND1",394,240,"N","","Nδ1","His57 Nδ1|Nitrogen|0|3|1|Hydrogen-bonded imidazole nitrogen")}${atom("hisN",470,260,"N",protonated?"+":"","Nε2",`His57 Nε2|Nitrogen|${protonated?"+1":"0"}|${protonated?"3":"2"}|${protonated?"0":"1"}|General acid–base catalyst`)}${protonated?`${bond(482,271,501,291)}${atom("proton",510,301,"H","","H*","Transferred proton|Hydrogen|+1 modeled|1|0|Proton relay")}`:pairs("hisN",470,260,[0],1)}${bond(391,229,378,207)}<text class="hydrogen-label" x="368" y="201">H</text></g>`;
-    const ser195 = ({alkoxide=false,proton=true}={}) => `<g class="template ser-template">${residue("Ser195",620,174)}${bond(620,250,692,250)}${atom("serO",716,250,"O",alkoxide?"−":"","Oγ",`Ser195 Oγ|Oxygen|${alkoxide?"−1":"0"}|${alkoxide?"1":"2"}|${alkoxide?"3":"2"}|Catalytic nucleophile`)}${pairs("serO",716,250,[-60,55,180],alkoxide?3:2)}${proton?`${bond(732,250,751,250)}${atom("serH",768,250,"H","","H*","Ser195 proton|Hydrogen|0|1|0|Transferred proton")}`:""}</g>`;
+    const his57 = ({protonated=false}={}) => `<g class="template his-template">${residue("His57",390,174)}${bond(392,240,420,207)}${bond(420,207,461,218)}${bond(461,218,470,260)}${bond(470,260,433,282)}${bond(433,282,399,260)}${bond(399,260,392,240)}<path class="ring-inner" d="M422 216L451 224M461 255L438 270"/>${atom("hisND1",394,240,"N","","Nδ1","His57 Nδ1|Nitrogen|0|3|1|Faces Asp102")}${atom("hisN",470,260,"N",protonated?"+":"","Nε2",`His57 Nε2|Nitrogen|${protonated?"+1":"0"}|${protonated?"3":"2"}|${protonated?"0":"1"}|Faces Ser195 and shuttles protons`)}${protonated?"":pairs("hisN",470,260,[0],1)}${bond(391,229,378,207)}<text class="hydrogen-label" x="368" y="201">H</text></g>`;
+    const ser195 = ({alkoxide=false}={}) => `<g class="template ser-template">${residue("Ser195",620,174)}${bond(620,250,692,250)}${atom("serO",716,250,"O",alkoxide?"−":"","Oγ",`Ser195 Oγ|Oxygen|${alkoxide?"−1":"0"}|${alkoxide?"1":"2"}|${alkoxide?"3":"2"}|Primary nucleophile`)}${pairs("serO",716,250,[-60,55,180],alkoxide?3:2)}</g>`;
     const peptideBackbone = ({leaving=false}={}) => `<g class="template peptide-backbone">${bond(815,263,850,283)}${bond(850,283,884,263)}${leaving?"":`${bond(900,263,935,263)}${atom("peptideN",955,263,"N","","N","Peptide nitrogen|Nitrogen|0|3|1|Scissile peptide nitrogen")}${pairs("peptideN",955,263,[-55],1)}${bond(974,263,1012,263)}${bond(1012,263,1036,282)}`}</g>`;
     const peptideCarbonyl = ({reduced=false,charge="",leaving=false,product=false}={}) => `<g class="template carbonyl-template">${atom("alphaC",815,263,"C","","Cα","P1 alpha carbon|Carbon|0|4|0|Peptide backbone")}${atom("carbonylC",884,263,"C","","C′",`Carbonyl carbon|Carbon|0|${reduced?"4":"3"}|0|${reduced?"Tetrahedral center":"Planar carbonyl"}`)}${reduced?bond(884,244,884,194,"carbonyl-single"):doubleBond(884,244,884,194,"peptide-carbonyl")}${atom("carbonylO",884,175,"O",charge,"O",`Carbonyl oxygen|Oxygen|${charge||"0"}|${reduced?"1":"2"}|${reduced?"3":"2"}|${reduced?"Oxyanion":"Carbonyl oxygen"}`)}${pairs("carbonylO",884,175,[-120,-60,0],reduced?3:2)}${product?`${bond(900,263,934,263)}${atom("productOH",955,263,"O","","OH","Carboxyl product hydroxyl|Oxygen|0|2|2|Hydrolysis product")}${pairs("productOH",955,263,[-55,55],2)}${bond(973,263,992,247)}${atom("productH",1005,237,"H","","","Product proton|Hydrogen|0|1|0|Carboxylic acid proton")}`:peptideBackbone({leaving})}</g>`;
     const tetrahedralCarbon = ({second=false,leaving=false}={}) => `<g class="template tetrahedral-template ${second?"ti2":"ti1"}">${atom("alphaC",815,263,"C","","Cα","P1 alpha carbon|Carbon|0|4|0|Peptide backbone")}${atom("carbonylC",884,263,"C","","C*","Tetrahedral carbon|Carbon|0|4|0|sp3 approximately 109.5 degrees")}${bond(884,244,884,194,"tetrahedral-bond")}${atom("carbonylO",884,175,"O","−","O","Oxyanion|Oxygen|−1|1|3|Oxyanion-hole acceptor")}${pairs("carbonylO",884,175,[-120,-60,0],3)}${bond(868,273,732,253,"tetrahedral-bond")}${bond(900,273,934,299,"tetrahedral-bond")}${second?`${atom("waterO",950,310,"O","","Ow","Water-derived oxygen|Oxygen|0|2|2|Hydrolytic oxygen")}${pairs("waterO",950,310,[-45,45],2)}`:""}${peptideBackbone({leaving})}</g>`;
@@ -419,15 +419,16 @@
   function drawMechanism(stage) {
     const T=chemistryTemplateLibrary,mode=stage.bonds;
     const bound=mode!=='resting',tetra=['tetrahedral','tetrahedral2'].includes(mode);
-    const hisPlus=['activation','attack','tetrahedral','water','waterattack','tetrahedral2','deacyl'].includes(mode);
+    const hisPlus=['activation','attack','tetrahedral','water','waterattack','tetrahedral2'].includes(mode);
     const alkoxide=['activation','attack'].includes(mode),waterVisible=['water','waterattack','tetrahedral2','deacyl'].includes(mode);
     const leaving=['acyl','water','waterattack','tetrahedral2','deacyl'].includes(mode);
     const arrows=[];
-    if(mode==='activation')arrows.push(`<path class="electron-arrow" d="M650 237Q685 213 704 242"/><path class="electron-arrow" d="M687 250Q666 232 649 248"/>`);
-    if(mode==='attack')arrows.push(`<path class="electron-arrow" d="M655 265Q757 322 868 270"/><path class="electron-arrow" d="M893 232Q916 207 894 190"/>`);
-    if(mode==='collapse')arrows.push(`<path class="electron-arrow" d="M895 191Q918 217 894 244"/><path class="electron-arrow" d="M908 254Q943 231 968 254"/>`);
-    if(mode==='waterattack')arrows.push(`<path class="electron-arrow" d="M730 369Q795 320 868 276"/><path class="electron-arrow" d="M893 232Q916 207 894 190"/>`);
-    if(mode==='deacyl')arrows.push(`<path class="electron-arrow" d="M894 191Q914 218 894 243"/><path class="electron-arrow" d="M862 279Q830 302 804 314"/>`);
+    if(mode==='activation')arrows.push(`<path class="electron-arrow" d="M482 255Q555 222 647 248"/><path class="electron-arrow" d="M681 242Q700 224 710 238"/>`);
+    if(mode==='attack')arrows.push(`<path class="electron-arrow" d="M724 239Q800 213 869 251"/><path class="electron-arrow" d="M893 232Q916 207 894 190"/>`);
+    if(mode==='collapse')arrows.push(`<path class="electron-arrow" d="M895 191Q918 217 894 244"/><path class="electron-arrow" d="M908 254Q943 231 968 254"/><path class="electron-arrow proton-transfer-arrow" d="M526 252Q720 205 934 252"/>`);
+    if(mode==='water')arrows.push(`<path class="electron-arrow" d="M481 266Q555 333 650 370"/><path class="electron-arrow" d="M685 370Q703 353 713 341"/>`);
+    if(mode==='waterattack')arrows.push(`<path class="electron-arrow" d="M728 338Q798 312 868 276"/><path class="electron-arrow" d="M893 232Q916 207 894 190"/>`);
+    if(mode==='deacyl')arrows.push(`<path class="electron-arrow" d="M894 191Q914 218 894 243"/><path class="electron-arrow" d="M862 279Q830 302 804 314"/><path class="electron-arrow proton-transfer-arrow" d="M526 252Q610 215 690 246"/>`);
     let reaction='';
     if(bound){
       reaction=T.aromaticP1();
@@ -437,8 +438,13 @@
     }
     const covalent=['attack','collapse','acyl','water','waterattack','deacyl'].includes(mode);
     const covalentBond=covalent?T.bond(732,253,868,271,`covalent ${mode==='attack'?'forming':''}`):'';
-    const hBonds=`<g class="template-hbonds"><path class="hbond" d="M268 263L382 244"/><path class="hbond" d="M486 269L626 250"/>${tetra?`<path class="hbond oxyanion-hbond" d="M850 120L879 159"/><path class="hbond oxyanion-hbond" d="M920 120L889 159"/><text class="donor-label" x="810" y="105">Gly193 N–H</text><text class="donor-label" x="912" y="105">Ser195 N–H</text>`:''}</g>`;
-    $("chemistry-svg").innerHTML=`<title id="mechanismTitle">${escapeXml(stage.title)}</title><desc id="mechanismDesc">${escapeXml(stage.chemistry)}</desc><defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z"/></marker></defs><g class="canonical-mechanism">${T.asp102()}${T.his57({protonated:hisPlus})}${T.ser195({alkoxide,proton:!alkoxide&&!covalent})}${hBonds}<g class="substrate-template ${bound?'is-visible':'is-hidden'}">${reaction}${covalentBond}</g><g class="water-state ${waterVisible?'is-visible':'is-hidden'}">${waterVisible?T.water({activated:mode==='water'}):''}</g><g class="electron-arrows-layer">${arrows.join('')}</g></g>`;
+    const hBonds=`<g class="template-hbonds"><path class="hbond" d="M268 263L382 244"/><path class="hbond his-ser-contact" d="M486 260L648 250"/>${tetra?`<path class="hbond oxyanion-hbond" d="M850 120L879 159"/><path class="hbond oxyanion-hbond" d="M920 120L889 159"/><text class="donor-label" x="810" y="105">Gly193 backbone N–H</text><text class="donor-label" x="912" y="105">Ser195 backbone N–H</text>`:''}</g>`;
+    const protonAtSer=['resting','bound','deacyl','release'].includes(mode),protonAtHis=['activation','attack','tetrahedral','water','waterattack','tetrahedral2'].includes(mode),protonAtLeaving=mode==='collapse';
+    const protonMarkup=protonAtSer?`<g class="proton-shuttle ${mode==='deacyl'?'his-to-ser':''}" data-proton-id="H-shuttle">${T.bond(700,250,680,250,'proton-bond')}${T.atom('proton',663,250,'H','','H*','Tracked shuttle proton|Hydrogen|0|1|0|Bound to Ser195 Oγ and facing His57 Nε2')}</g>`:protonAtHis?`<g class="proton-shuttle ${['activation','water'].includes(mode)?(mode==='activation'?'ser-to-his':'water-to-his'):''}" data-proton-id="H-shuttle">${T.bond(486,260,500,260,'proton-bond')}${T.atom('proton',518,260,'H','','H*','Tracked shuttle proton|Hydrogen|+1 modeled|1|0|Bound to His57 Nε2')}</g>`:protonAtLeaving?`<g class="proton-shuttle his-to-leaving" data-proton-id="H-shuttle">${T.bond(940,263,924,250,'proton-bond')}${T.atom('proton',910,240,'H','','H*','Tracked shuttle proton|Hydrogen|0|1|0|Transferred to leaving amine')}</g>`:'';
+    const roleMap={activation:['GENERAL BASE','accepts H⁺'],attack:['GENERAL BASE','activated Ser195'],collapse:['GENERAL ACID','donates H⁺'],water:['GENERAL BASE','accepts H⁺'],waterattack:['GENERAL BASE','activated water'],deacyl:['GENERAL ACID','returns H⁺ to Ser195']};
+    const role=roleMap[mode];
+    const roleMarkup=role?`<g class="his-role ${role[0].includes('BASE')?'base':'acid'}"><text x="430" y="322" text-anchor="middle">His57 · ${role[0]}</text><text x="430" y="339" text-anchor="middle">${role[1]}</text></g>`:'';
+    $("chemistry-svg").innerHTML=`<title id="mechanismTitle">${escapeXml(stage.title)}</title><desc id="mechanismDesc">${escapeXml(stage.chemistry)}</desc><defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z"/></marker></defs><g class="canonical-mechanism">${T.asp102()}${T.his57({protonated:hisPlus})}${T.ser195({alkoxide})}${protonMarkup}${hBonds}${roleMarkup}<g class="substrate-template ${bound?'is-visible':'is-hidden'}">${reaction}${covalentBond}</g><g class="water-state ${waterVisible?'is-visible':'is-hidden'}">${waterVisible?T.water({activated:mode==='water'}):''}</g><g class="electron-arrows-layer">${arrows.join('')}</g></g>`;
     const caption=mode==='tetrahedral'?"First tetrahedral intermediate (TI1): fixed sp³ template (≈109.5°); the oxyanion is stabilized by two backbone N–H donors.":mode==='tetrahedral2'?"Second tetrahedral intermediate (TI2): fixed sp³ template (≈109.5°); water-derived oxygen is incorporated before collapse.":stageCheckpoints[state.stage];
     $("stageCheckpoint").textContent=caption;
     $("chemistryExplanation").innerHTML=`<span class="explanation-icon" aria-hidden="true">i</span><div><strong>What’s happening?</strong><p>${escapeXml(stage.chemistry)}</p></div>`;
@@ -549,7 +555,8 @@
   function setStage(index, options = {}) {
     state.stage = (index + stages.length) % stages.length;
     const stage = stages[state.stage];
-    $("stageKicker").textContent = `Step ${state.stage + 1} of ${stages.length}`;
+    const phaseNumber = stage.phase === "Acylation" ? 1 : 2;
+    $("stageKicker").textContent = `Step ${state.stage + 1} of ${stages.length} · Phase ${phaseNumber}: ${stage.phase}`;
     $("stageTitle").textContent = stage.title;
     $("stageSummary").textContent = stage.summary;
     $("chemistryLabel").textContent = stage.chemistry;
@@ -618,6 +625,7 @@
     const advance = () => {
       if (state.stage === stages.length - 1) return stop();
       setStage(state.stage + 1);
+      if (state.stage === 6) return stop();
       schedule();
     };
     const schedule = () => {
