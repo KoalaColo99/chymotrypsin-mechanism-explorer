@@ -118,6 +118,17 @@ main{max-width:1840px;padding:16px 18px 24px}
 #chemistry-svg .canonical-mechanism .tetrahedral-bond{stroke-width:3}
 #chemistry-svg .canonical-mechanism .template-atom.tracked .atom-hit{fill:rgba(240,172,41,.18);stroke:#d08a10;stroke-width:2}
 
+/* r10 fixed P1 peptide composition */
+#chemistry-svg .canonical-mechanism .atom-id{display:none}
+#chemistry-svg.full-electron .canonical-mechanism .atom-id{display:block}
+#chemistry-svg .canonical-mechanism .p1-sidechain{stroke-width:3}
+#chemistry-svg .canonical-mechanism .p1-title{font-size:13px}
+#chemistry-svg .canonical-mechanism .ester-annotation{pointer-events:none}
+#chemistry-svg .canonical-mechanism .ester-leader{fill:none;stroke:#b76816;stroke-width:1.8;stroke-linecap:round;marker-end:url(#arrowhead)}
+#chemistry-svg .canonical-mechanism .ester-annotation text{font-size:12px;font-weight:600;fill:#8b4b14;paint-order:stroke;stroke:#fff;stroke-width:4px}
+#chemistry-svg.playing[data-bonds="acyl"] .ester-annotation{animation:ester-label-fade 4.5s ease both}
+@keyframes ester-label-fade{0%,55%{opacity:1}100%{opacity:0}}
+
 /* r8 clarity pass */
 #chemistry-svg .canonical-mechanism .bond,#chemistry-svg .canonical-double-bond path{stroke-width:3.2}
 #chemistry-svg .canonical-double-bond path{stroke-width:2.65}
@@ -140,6 +151,6 @@ main{max-width:1840px;padding:16px 18px 24px}
 #chemistry-svg.playing .proton-shuttle.his-to-ser{animation:his-to-ser .9s ease-in-out both}
 @keyframes ser-to-his{from{transform:translate(145px,-10px)}to{transform:translate(0,0)}}
 @keyframes water-to-his{from{transform:translate(154px,122px)}to{transform:translate(0,0)}}
-@keyframes his-to-leaving{from{transform:translate(-392px,20px)}to{transform:translate(0,0)}}
+@keyframes his-to-leaving{from{transform:translate(-217px,0)}to{transform:translate(0,0)}}
 @keyframes his-to-ser{from{transform:translate(-145px,10px)}to{transform:translate(0,0)}}
 @media(prefers-reduced-motion:reduce){#chemistry-svg.playing .proton-shuttle{animation:none!important}}
